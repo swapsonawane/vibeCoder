@@ -1,0 +1,210 @@
+<!-- Dashboard Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+    Dashboard
+  </h1>
+  <button class="btn btn-outline-primary" (click)="refreshDashboard()">
+    <i class="fas fa-sync-alt me-2"></i>
+    Refresh
+  </button>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-3 text-muted">Loading your banking information...</p>
+</div>
+
+<!-- Dashboard Content -->
+<div *ngIf="!loading">
+  <!-- Welcome Message -->
+  <div class="alert alert-info" *ngIf="user">
+    <i class="fas fa-user-circle me-2"></i>
+    Welcome back, <strong>{{user.firstName}} {{user.lastName}}</strong>!
+    <small class="d-block mt-1">Last login: {{user.lastLoginAt | date:'medium'}}</small>
+  </div>
+
+  <!-- Account Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3" *ngFor="let account of accounts">
+      <div class="card dashboard-card text-white clickable-card" (click)="navigateToAccount(account)">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title mb-1">
+                <i [class]="getAccountTypeIcon(account.accountType)" class="me-2"></i>
+                {{account.accountType}}
+              </h6>
+              <p class="card-text small mb-2">{{account.accountNumber}}</p>
+              <h4 class="mb-0">{{formatCurrency(account.balance)}}</h4>
+            </div>
+            <div class="text-end">
+              <small class="d-block">Available</small>
+              <strong>{{formatCurrency(account.availableBalance)}}</strong>
+              <i class="fas fa-arrow-right mt-2"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Balance Card -->
+    <div class="col-md-3 mb-3">
+      <div class="card balance-card text-white">
+        <div class="card-body">
+          <h6 class="card-title">
+            <i class="fas fa-wallet me-2"></i>
+            Total Balance
+          </h6>
+          <h3 class="mb-0">{{formatCurrency(totalBalance)}}</h3>
+          <small>Across all accounts</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-exchange-alt fa-2x text-info mb-2"></i>
+          <h5 class="card-title">{{pendingTransfers}}</h5>
+          <p class="card-text text-muted">Pending Transfers</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-file-invoice fa-2x text-warning mb-2"></i>
+          <h5 class="card-title">{{upcomingBills.length}}</h5>
+          <p class="card-text text-muted">Upcoming Bills</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-bell fa-2x text-danger mb-2"></i>
+          <h5 class="card-title">{{unreadNotifications}}</h5>
+          <p class="card-text text-muted">Unread Alerts</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <i class="fas fa-credit-card fa-2x text-success mb-2"></i>
+          <h5 class="card-title">{{formatCurrency(monthlySpending)}}</h5>
+          <p class="card-text text-muted">Monthly Spending</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity & Upcoming Bills -->
+  <div class="row">
+    <!-- Recent Transfers -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">
+            <i class="fas fa-history me-2"></i>
+            Recent Transfers
+          </h6>
+          <a href="#" class="text-decoration-none">View All</a>
+        </div>
+        <div class="card-body">
+          <div *ngIf="recentTransfers.length === 0" class="text-center text-muted py-3">
+            <i class="fas fa-inbox fa-2x mb-2"></i>
+            <p class="mb-0">No recent transfers</p>
+          </div>
+          <div *ngFor="let transfer of recentTransfers" class="transaction-item border-start ps-3 py-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1">{{transfer.description}}</h6>
+                <small class="text-muted">
+                  To: {{transfer.recipientName}}
+                  <span class="badge bg-{{transfer.status === 'COMPLETED' ? 'success' : 'warning'}} ms-2">
+                    {{transfer.status}}
+                  </span>
+                </small>
+              </div>
+              <div class="text-end">
+                <h6 class="mb-0 text-danger">-{{formatCurrency(transfer.amount)}}</h6>
+                <small class="text-muted">{{transfer.createdAt | date:'short'}}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Bills -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">
+            <i class="fas fa-calendar-check me-2"></i>
+            Upcoming Bills
+          </h6>
+          <a (click)="navigateToBills()" class="text-decoration-none" style="cursor: pointer;">View All</a>
+        </div>
+        <div class="card-body">
+          <div *ngIf="upcomingBills.length === 0" class="text-center text-muted py-3">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <p class="mb-0">No upcoming bills</p>
+          </div>
+          <div *ngFor="let bill of upcomingBills" class="transaction-item border-start ps-3 py-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1">{{bill.description}}</h6>
+                <small class="text-muted">
+                  Due: {{bill.dueDate | date:'mediumDate'}}
+                  <span *ngIf="bill.isRecurring" class="badge bg-info ms-2">Recurring</span>
+                </small>
+              </div>
+              <div class="text-end">
+                <h6 class="mb-0 text-warning">{{formatCurrency(bill.amount)}}</h6>
+                <button class="btn btn-sm btn-outline-primary" (click)="navigateToBills()">Pay Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Notifications -->
+  <div class="row" *ngIf="notifications.length > 0">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="fas fa-bell me-2"></i>
+            Recent Notifications
+          </h6>
+        </div>
+        <div class="card-body">
+          <div *ngFor="let notification of notifications" class="alert alert-dismissible fade show" 
+               [class.alert-info]="notification.priority === 'LOW'"
+               [class.alert-warning]="notification.priority === 'MEDIUM'"
+               [class.alert-danger]="notification.priority === 'HIGH'">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="alert-heading mb-1">{{notification.title}}</h6>
+                <p class="mb-1">{{notification.message}}</p>
+                <small class="text-muted">{{notification.createdAt | date:'short'}}</small>
+              </div>
+              <button type="button" class="btn-close" aria-label="Close"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

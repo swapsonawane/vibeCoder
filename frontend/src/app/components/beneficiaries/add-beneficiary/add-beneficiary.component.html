@@ -1,0 +1,258 @@
+<!-- Add Beneficiary/Payee Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-plus me-2 text-primary"></i>
+    {{pageTitle}}
+  </h1>
+  <button class="btn btn-outline-secondary" (click)="onCancel()">
+    <i class="fas fa-arrow-left me-2"></i>
+    {{backButtonText}}
+  </button>
+</div>
+
+<!-- Add Beneficiary Form -->
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="fas fa-user-plus me-2"></i>
+      {{entityType}} Information
+    </h5>
+  </div>
+  <div class="card-body">
+    <form [formGroup]="beneficiaryForm" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <!-- Basic Information -->
+        <div class="col-md-6 mb-4">
+          <h6 class="text-primary">Basic Information</h6>
+          
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name *</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="name"
+                   formControlName="name"
+                   [placeholder]="'Enter ' + entityType.toLowerCase() + ' name'"
+                   [class.is-invalid]="isFieldInvalid('name')">
+            <div *ngIf="isFieldInvalid('name')" class="invalid-feedback">
+              {{getFieldError('name')}}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="nickname" class="form-label">Nickname (Optional)</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="nickname"
+                   formControlName="nickname"
+                   placeholder="e.g., Mom, Electric Bill, etc.">
+            <div class="form-text">A friendly name to easily identify this {{entityType.toLowerCase()}}</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email Address (Optional)</label>
+            <input type="email" 
+                   class="form-control" 
+                   id="email"
+                   formControlName="email"
+                   placeholder="beneficiary@email.com"
+                   [class.is-invalid]="isFieldInvalid('email')">
+            <div *ngIf="isFieldInvalid('email')" class="invalid-feedback">
+              {{getFieldError('email')}}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number (Optional)</label>
+            <input type="tel" 
+                   class="form-control" 
+                   id="phone"
+                   formControlName="phone"
+                   placeholder="+1-555-0123"
+                   [class.is-invalid]="isFieldInvalid('phone')">
+            <div *ngIf="isFieldInvalid('phone')" class="invalid-feedback">
+              {{getFieldError('phone')}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="col-md-6 mb-4">
+          <h6 class="text-primary">Account Information</h6>
+          
+          <div class="mb-3">
+            <label for="accountNumber" class="form-label">Account Number *</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="accountNumber"
+                   formControlName="accountNumber"
+                   placeholder="Enter account number"
+                   [class.is-invalid]="isFieldInvalid('accountNumber')">
+            <div *ngIf="isFieldInvalid('accountNumber')" class="invalid-feedback">
+              {{getFieldError('accountNumber')}}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="bankName" class="form-label">Bank Name *</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="bankName"
+                   formControlName="bankName"
+                   placeholder="Enter bank name"
+                   [class.is-invalid]="isFieldInvalid('bankName')">
+            <div *ngIf="isFieldInvalid('bankName')" class="invalid-feedback">
+              {{getFieldError('bankName')}}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="routingNumber" class="form-label">Routing Number</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="routingNumber"
+                   formControlName="routingNumber"
+                   placeholder="9-digit routing number"
+                   maxlength="9"
+                   [class.is-invalid]="isFieldInvalid('routingNumber')">
+            <div *ngIf="isFieldInvalid('routingNumber')" class="invalid-feedback">
+              {{getFieldError('routingNumber')}}
+            </div>
+            <div class="form-text">Required for external transfers</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="type" class="form-label">Account Type *</label>
+            <select class="form-control" 
+                    id="type" 
+                    formControlName="type"
+                    (change)="onTypeChange()">
+              <option value="EXTERNAL">External Account</option>
+              <option value="INTERNAL">Internal NetBanking Account</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Classification -->
+        <div class="col-md-6 mb-4">
+          <h6 class="text-primary">Classification</h6>
+          
+          <div class="mb-3">
+            <label for="category" class="form-label">Category *</label>
+            <select class="form-control" id="category" formControlName="category">
+              <option value="PERSONAL">Personal</option>
+              <option value="BUSINESS">Business</option>
+              <option value="UTILITY">Utility/Service Provider</option>
+            </select>
+            <div class="form-text">Helps organize your beneficiaries</div>
+          </div>
+
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" 
+                   type="checkbox" 
+                   id="isActive" 
+                   formControlName="isActive">
+            <label class="form-check-label" for="isActive">
+              Active Beneficiary
+            </label>
+            <div class="form-text">You can enable/disable beneficiaries anytime</div>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="col-md-6 mb-4">
+          <h6 class="text-primary">Preview</h6>
+          <div class="card bg-light">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                <div>
+                  <h6 class="card-title mb-0">
+                    {{beneficiaryForm.get('nickname')?.value || beneficiaryForm.get('name')?.value || 'Beneficiary Name'}}
+                  </h6>
+                  <small class="text-muted">{{beneficiaryForm.get('bankName')?.value || 'Bank Name'}}</small>
+                </div>
+              </div>
+              <p class="card-text">
+                <small class="text-muted">{{beneficiaryForm.get('accountNumber')?.value || 'Account Number'}}</small><br>
+                <span class="badge" 
+                      [class.bg-primary]="beneficiaryForm.get('category')?.value === 'PERSONAL'"
+                      [class.bg-success]="beneficiaryForm.get('category')?.value === 'BUSINESS'"
+                      [class.bg-warning]="beneficiaryForm.get('category')?.value === 'UTILITY'">
+                  {{beneficiaryForm.get('category')?.value || 'PERSONAL'}}
+                </span>
+                <span class="badge ms-1"
+                      [class.bg-info]="beneficiaryForm.get('type')?.value === 'INTERNAL'"
+                      [class.bg-secondary]="beneficiaryForm.get('type')?.value === 'EXTERNAL'">
+                  {{beneficiaryForm.get('type')?.value || 'EXTERNAL'}}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+        <div class="form-text">
+          <i class="fas fa-info-circle me-1"></i>
+          Fields marked with * are required
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" 
+                  class="btn btn-outline-secondary" 
+                  (click)="onCancel()"
+                  [disabled]="saving">
+            <i class="fas fa-times me-2"></i>
+            Cancel
+          </button>
+          <button type="submit" 
+                  class="btn btn-primary"
+                  [disabled]="saving || beneficiaryForm.invalid">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!saving" class="fas fa-plus me-2"></i>
+            {{saving ? 'Adding...' : 'Add Beneficiary'}}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Help Section -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h6 class="mb-0">
+      <i class="fas fa-question-circle me-2"></i>
+      Need Help?
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-4">
+        <h6 class="text-primary">Account Types</h6>
+        <ul class="list-unstyled">
+          <li><strong>Internal:</strong> Other NetBanking accounts</li>
+          <li><strong>External:</strong> Accounts at other banks</li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h6 class="text-primary">Categories</h6>
+        <ul class="list-unstyled">
+          <li><strong>Personal:</strong> Family, friends</li>
+          <li><strong>Business:</strong> Vendors, contractors</li>
+          <li><strong>Utility:</strong> Bills, services</li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h6 class="text-primary">Security</h6>
+        <ul class="list-unstyled">
+          <li>All beneficiaries are encrypted</li>
+          <li>Verify account details carefully</li>
+          <li>You can edit details anytime</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div> 

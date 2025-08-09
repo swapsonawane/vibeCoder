@@ -1,0 +1,115 @@
+/* Dashboard Cards */
+.dashboard-card {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+}
+
+.clickable-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.balance-card {
+  background: linear-gradient(135deg, var(--success-color), #34d399);
+  color: white;
+}
+
+.stats-card {
+  background: linear-gradient(135deg, var(--info-color), #0ea5e9);
+  color: white;
+}
+
+.warning-card {
+  background: linear-gradient(135deg, var(--warning-color), #fbbf24);
+  color: white;
+}
+
+/* Transaction Items */
+.transaction-item {
+  border-left: 3px solid var(--secondary-color);
+  transition: all 0.2s ease;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.transaction-item:hover {
+  background-color: var(--light-color);
+  transform: translateX(4px);
+}
+
+.transaction-credit {
+  border-left-color: var(--success-color);
+}
+
+.transaction-debit {
+  border-left-color: var(--danger-color);
+}
+
+.transaction-transfer {
+  border-left-color: var(--info-color);
+}
+
+/* Quick Actions */
+.quick-action-btn {
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Welcome Section */
+.welcome-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Account Summary */
+.account-summary-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.account-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-card {
+    margin-bottom: 1rem;
+  }
+  
+  .transaction-item {
+    padding: 0.75rem;
+  }
+  
+  .quick-action-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+} 

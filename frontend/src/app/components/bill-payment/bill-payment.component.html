@@ -1,0 +1,226 @@
+<!-- Bill Payment Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-file-invoice me-2 text-primary"></i>
+    Bill Payments
+  </h1>
+  <button class="btn btn-success" (click)="addPayee()">
+    <i class="fas fa-plus me-2"></i>
+    Add Payee
+  </button>
+</div>
+
+<div class="row">
+  <!-- Bill Payment Form -->
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-credit-card me-2"></i>
+          New Bill Payment
+        </h6>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="billPaymentForm" (ngSubmit)="onSubmit()">
+          <!-- Account -->
+          <div class="mb-3">
+            <label class="form-label">Pay From Account</label>
+            <select class="form-select" 
+                    formControlName="account"
+                    [class.is-invalid]="submitted && f['account'].errors">
+              <option value="">Select Account</option>
+              <option *ngFor="let account of accounts" [value]="account.id">
+                {{account.accountType}} - {{account.accountNumber}} 
+                ({{formatCurrency(account.balance)}})
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && f['account'].errors">
+              Please select an account
+            </div>
+          </div>
+
+          <!-- Payee -->
+          <div class="mb-3">
+            <label class="form-label">Payee</label>
+            <select class="form-select" 
+                    formControlName="payee"
+                    [class.is-invalid]="submitted && f['payee'].errors">
+              <option value="">Select Payee</option>
+              <option *ngFor="let payee of payees" [value]="payee.id">
+                <i [class]="getPayeeCategoryIcon(payee.category)"></i>
+                {{payee.name}} - {{payee.accountNumber}}
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && f['payee'].errors">
+              Please select a payee
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="mb-3">
+            <label class="form-label">Amount ($)</label>
+            <input type="number" 
+                   class="form-control" 
+                   formControlName="amount"
+                   [class.is-invalid]="submitted && f['amount'].errors"
+                   placeholder="0.00"
+                   step="0.01">
+            <div class="invalid-feedback" *ngIf="submitted && f['amount'].errors">
+              <div *ngIf="f['amount'].errors['required']">Amount is required</div>
+              <div *ngIf="f['amount'].errors['min']">Amount must be greater than 0</div>
+            </div>
+          </div>
+
+          <!-- Due Date -->
+          <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" 
+                   class="form-control" 
+                   formControlName="dueDate"
+                   [class.is-invalid]="submitted && f['dueDate'].errors">
+            <div class="invalid-feedback" *ngIf="submitted && f['dueDate'].errors">
+              Due date is required
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" 
+                   class="form-control" 
+                   formControlName="description"
+                   [class.is-invalid]="submitted && f['description'].errors"
+                   placeholder="Bill payment description">
+            <div class="invalid-feedback" *ngIf="submitted && f['description'].errors">
+              Description is required
+            </div>
+          </div>
+
+          <!-- Recurring Payment -->
+          <div class="mb-3 form-check">
+            <input class="form-check-input" 
+                   type="checkbox" 
+                   formControlName="isRecurring"
+                   id="recurringCheck">
+            <label class="form-check-label" for="recurringCheck">
+              Make this a recurring payment
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid">
+            <button type="submit" 
+                    class="btn btn-primary" 
+                    [disabled]="loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!loading" class="fas fa-credit-card me-2"></i>
+              {{loading ? 'Processing...' : 'Schedule Payment'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Bills & Recent Payments -->
+  <div class="col-lg-6 mb-4">
+    <!-- Upcoming Bills -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+          <i class="fas fa-calendar-alt me-2"></i>
+          Upcoming Bills
+        </h6>
+        <a href="#" class="text-decoration-none">View All</a>
+      </div>
+      <div class="card-body">
+        <div *ngIf="upcomingBills.length === 0" class="text-center text-muted py-4">
+          <i class="fas fa-check-circle fa-2x mb-2"></i>
+          <p class="mb-0">No upcoming bills</p>
+        </div>
+
+        <div *ngFor="let bill of upcomingBills" class="border-start border-3 border-warning ps-3 py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{bill.payeeName}}</h6>
+              <p class="mb-1 text-muted small">
+                Due: {{bill.dueDate | date:'mediumDate'}}
+                <span class="badge bg-info ms-2" 
+                      [class.bg-danger]="getDaysUntilDue(bill.dueDate) <= 2"
+                      [class.bg-warning]="getDaysUntilDue(bill.dueDate) <= 5 && getDaysUntilDue(bill.dueDate) > 2">
+                  {{getDaysUntilDue(bill.dueDate)}} days
+                </span>
+              </p>
+            </div>
+            <div class="text-end">
+              <h6 class="mb-1 text-warning">{{formatCurrency(bill.amount)}}</h6>
+              <button class="btn btn-sm btn-outline-primary" (click)="quickPayBill(bill)">Pay Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-history me-2"></i>
+          Recent Payments
+        </h6>
+      </div>
+      <div class="card-body">
+        <div *ngIf="recentPayments.length === 0" class="text-center text-muted py-4">
+          <i class="fas fa-inbox fa-2x mb-2"></i>
+          <p class="mb-0">No recent payments</p>
+        </div>
+
+        <div *ngFor="let payment of recentPayments" class="border-start border-3 border-success ps-3 py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{payment.payeeName}}</h6>
+              <small class="text-muted">{{payment.date | date:'short'}}</small>
+            </div>
+            <div class="text-end">
+              <h6 class="mb-1 text-success">{{formatCurrency(payment.amount)}}</h6>
+              <span class="badge" [class]="getStatusBadgeClass(payment.status)">
+                {{payment.status}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payees Management -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-users me-2"></i>
+          My Payees
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 mb-3" *ngFor="let payee of payees">
+            <div class="card border">
+              <div class="card-body text-center">
+                <i [class]="getPayeeCategoryIcon(payee.category)" class="fa-2x text-primary mb-2"></i>
+                <h6 class="card-title">{{payee.name}}</h6>
+                <p class="card-text small text-muted">{{payee.accountNumber}}</p>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="payPayee(payee)">Pay</button>
+                  <button class="btn btn-outline-secondary" (click)="editPayee(payee)">Edit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

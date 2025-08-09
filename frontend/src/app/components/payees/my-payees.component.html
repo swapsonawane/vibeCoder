@@ -1,0 +1,215 @@
+<!-- Payees Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-heart me-2 text-primary"></i>
+    My Payees
+  </h1>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-primary" (click)="viewAllBeneficiaries()">
+      <i class="fas fa-list me-2"></i>
+      View All
+    </button>
+    <button class="btn btn-primary" (click)="addNewPayee()">
+      <i class="fas fa-plus me-2"></i>
+      Add New Payee
+    </button>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-3 text-muted">Loading your payees...</p>
+</div>
+
+<!-- Payees Content -->
+<div *ngIf="!loading">
+  <!-- Search -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" 
+                   class="form-control" 
+                   placeholder="Search payees by name, account, or bank..."
+                   [(ngModel)]="searchQuery"
+                   (input)="onSearch()">
+          </div>
+        </div>
+        <div class="col-md-4 text-end">
+          <small class="text-muted">{{filteredPayees.length}} payees found</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Payees -->
+  <div class="card mb-4" *ngIf="recentPayees.length > 0">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <i class="fas fa-clock me-2"></i>
+        Recent Payees
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-lg-6 col-xl-4 mb-3" *ngFor="let payee of recentPayees">
+          <div class="card payee-card h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex align-items-center mb-2">
+                <div class="payee-icon me-3">
+                  <i [class]="getCategoryIcon(payee.category)" 
+                     [ngClass]="getCategoryClass(payee.category)"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">{{payee.nickname || payee.name}}</h6>
+                  <small class="text-muted">{{payee.bankName}}</small>
+                </div>
+                <div class="payee-type">
+                  <i [class]="getTypeIcon(payee.type)" class="text-muted"></i>
+                </div>
+              </div>
+              <p class="card-text">
+                <small class="text-muted">{{payee.accountNumber}}</small><br>
+                <small class="text-success">Last used: {{formatLastUsed(payee.lastUsed)}}</small>
+              </p>
+              <div class="mt-auto">
+                <div class="btn-group w-100">
+                  <button class="btn btn-sm btn-primary" (click)="makePayment(payee)">
+                    <i class="fas fa-paper-plane me-1"></i>
+                    Pay
+                  </button>
+                  <button class="btn btn-sm btn-outline-primary" (click)="payBill(payee)">
+                    <i class="fas fa-file-invoice me-1"></i>
+                    Bill
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frequent Payees -->
+  <div class="card mb-4" *ngIf="frequentPayees.length > 0">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <i class="fas fa-star me-2"></i>
+        Frequently Used
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-lg-6 col-xl-3 mb-3" *ngFor="let payee of frequentPayees">
+          <div class="card payee-card h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex align-items-center mb-2">
+                <div class="payee-icon me-3">
+                  <i [class]="getCategoryIcon(payee.category)" 
+                     [ngClass]="getCategoryClass(payee.category)"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">{{payee.nickname || payee.name}}</h6>
+                  <small class="text-muted">{{payee.bankName}}</small>
+                </div>
+              </div>
+              <div class="mt-auto">
+                <button class="btn btn-sm btn-outline-primary w-100" (click)="makePayment(payee)">
+                  <i class="fas fa-paper-plane me-1"></i>
+                  Quick Pay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Payees (Search Results) -->
+  <div class="card" *ngIf="searchQuery">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <i class="fas fa-search me-2"></i>
+        Search Results
+      </h5>
+    </div>
+    <div class="card-body">
+      <div *ngIf="filteredPayees.length === 0" class="text-center py-4">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No payees found matching "{{searchQuery}}"</p>
+        <button class="btn btn-primary" (click)="addNewPayee()">
+          <i class="fas fa-plus me-2"></i>
+          Add New Payee
+        </button>
+      </div>
+      
+      <div class="row" *ngIf="filteredPayees.length > 0">
+        <div class="col-lg-6 col-xl-4 mb-3" *ngFor="let payee of filteredPayees">
+          <div class="card payee-card h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex align-items-center mb-2">
+                <div class="payee-icon me-3">
+                  <i [class]="getCategoryIcon(payee.category)" 
+                     [ngClass]="getCategoryClass(payee.category)"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">{{payee.nickname || payee.name}}</h6>
+                  <small class="text-muted">{{payee.bankName}}</small>
+                </div>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" (click)="makePayment(payee)">
+                      <i class="fas fa-paper-plane me-2"></i>Make Payment
+                    </a></li>
+                    <li><a class="dropdown-item" (click)="payBill(payee)">
+                      <i class="fas fa-file-invoice me-2"></i>Pay Bill
+                    </a></li>
+                    <li><a class="dropdown-item" (click)="editPayee(payee)">
+                      <i class="fas fa-edit me-2"></i>Edit
+                    </a></li>
+                  </ul>
+                </div>
+              </div>
+              <p class="card-text">
+                <small class="text-muted">{{payee.accountNumber}}</small><br>
+                <small class="text-info" *ngIf="payee.lastUsed">Last used: {{formatLastUsed(payee.lastUsed)}}</small>
+                <small class="text-muted" *ngIf="!payee.lastUsed">Never used</small>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="card" *ngIf="!searchQuery && recentPayees.length === 0 && frequentPayees.length === 0">
+    <div class="card-body text-center py-5">
+      <i class="fas fa-heart fa-4x text-muted mb-3"></i>
+      <h4>No Payees Yet</h4>
+      <p class="text-muted mb-4">Start by adding your first payee to make payments and transfers easier.</p>
+      <div class="d-flex gap-2 justify-content-center">
+        <button class="btn btn-primary" (click)="addNewPayee()">
+          <i class="fas fa-plus me-2"></i>
+          Add New Payee
+        </button>
+        <button class="btn btn-outline-primary" (click)="viewAllBeneficiaries()">
+          <i class="fas fa-list me-2"></i>
+          Browse All
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

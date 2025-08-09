@@ -1,0 +1,544 @@
+<!-- BankGenie Floating Button -->
+<div class="bankgenie-toggle-btn" 
+     [class.chat-open]="isChatOpen" 
+     [class.magic-activated]="magicActivated"
+     (click)="toggleChat()"
+     (mouseenter)="activateMagic()"
+     (mouseleave)="deactivateMagic()">
+  <div class="genie-icon" *ngIf="!isChatOpen">
+    <i class="fas fa-magic"></i>
+  </div>
+  <i class="fas fa-times" *ngIf="isChatOpen"></i>
+  <span class="unread-badge" *ngIf="unreadCount > 0 && !isChatOpen">{{unreadCount}}</span>
+  
+  <!-- Enhanced Magic Effects -->
+  <div class="magic-aura" *ngIf="!isChatOpen"></div>
+  <div class="genie-sparkles" *ngIf="!isChatOpen">
+    <span class="sparkle sparkle-1">✨</span>
+    <span class="sparkle sparkle-2">⭐</span>
+    <span class="sparkle sparkle-3">💫</span>
+    <span class="sparkle sparkle-4">🌟</span>
+    <span class="sparkle sparkle-5">✨</span>
+  </div>
+  
+  <!-- Magic Circle -->
+  <div class="magic-circle" *ngIf="!isChatOpen">
+    <div class="circle-inner"></div>
+  </div>
+</div>
+
+<!-- Chat Window (Overlay) -->
+<div class="chat-overlay" [class.show]="isChatOpen" (click)="closeChat()"></div>
+
+<!-- Chat Container -->
+<div class="chat-container" [class.open]="isChatOpen">
+  <!-- BankGenie Header -->
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <div class="genie-avatar">
+        <i class="fas fa-magic"></i>
+        <div class="genie-glow"></div>
+      </div>
+      <div class="bot-info">
+        <h4>🧞‍♂️ BankGenie</h4>
+        <span class="bot-status">
+          <i class="fas fa-circle online"></i>
+          Your magical banking assistant
+        </span>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="btn-icon" (click)="clearChat()" title="Clear Chat">
+        <i class="fas fa-trash"></i>
+      </button>
+      <button class="btn-icon" (click)="closeChat()" title="Close Chat">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-messages" #chatContainer>
+    <div class="messages-list">
+      <!-- Message Item -->
+      <div 
+        *ngFor="let message of messages"
+        class="message-item"
+        [class.user-message]="message.isFromUser"
+        [class.bot-message]="!message.isFromUser">
+        
+        <!-- BankGenie Avatar for Bot Messages -->
+        <div class="message-avatar genie-message-avatar" *ngIf="!message.isFromUser">
+          <i class="fas fa-magic"></i>
+        </div>
+
+        <div class="message-content">
+          <!-- Text Message -->
+          <div class="message-bubble" *ngIf="message.type === 'text'">
+            <p>{{message.content}}</p>
+            <span class="message-time">{{getMessageTime(message.timestamp)}}</span>
+          </div>
+
+          <!-- Card Message for Banking Data -->
+          <div class="message-card" *ngIf="message.type === 'card'">
+            <div class="card-header">
+              <p class="card-message">{{message.content}}</p>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="balance-card" *ngIf="message.cardData?.type === 'balance'">
+              <div class="balance-summary">
+                <h5>Total Balance</h5>
+                <h3 class="balance-amount">{{formatCurrency(message.cardData.totalBalance)}}</h3>
+              </div>
+              <div class="accounts-list">
+                <div class="account-item" *ngFor="let account of message.cardData.accounts">
+                  <div class="account-info">
+                    <span class="account-name">{{account.name}}</span>
+                    <span class="account-number">{{account.number}}</span>
+                  </div>
+                  <span class="account-balance">{{formatCurrency(account.balance)}}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction Card -->
+            <div class="transaction-card" *ngIf="message.cardData?.type === 'transactions'">
+              <h5>Recent Transactions</h5>
+              <div class="transaction-list">
+                <div class="transaction-item" *ngFor="let transaction of message.cardData.transactions">
+                  <div class="transaction-info">
+                    <span class="transaction-desc">{{transaction.description}}</span>
+                    <span class="transaction-category">{{transaction.category}}</span>
+                  </div>
+                  <div class="transaction-amount" 
+                       [class.positive]="transaction.amount > 0"
+                       [class.negative]="transaction.amount < 0">
+                                         {{formatCurrency(getAbsoluteValue(transaction.amount))}}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Info Card -->
+            <div class="account-info-card" *ngIf="message.cardData?.type === 'accounts'">
+              <h5>Your Accounts</h5>
+              <div class="account-details-list">
+                <div class="account-detail-item" *ngFor="let account of message.cardData.accounts">
+                  <div class="account-header">
+                    <h6>{{account.type}} Account</h6>
+                    <span class="account-status active">{{account.status}}</span>
+                  </div>
+                  <div class="account-meta">
+                    <p>Account: {{account.number}}</p>
+                    <p>Opened: {{account.openDate | date:'MMM d, yyyy'}}</p>
+                    <p class="account-balance-detail">Balance: {{formatCurrency(account.balance)}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Digital Wallet Card -->
+            <div class="digital-wallet-card" *ngIf="message.cardData?.type === 'digital_wallet'">
+              <div class="wallet-header">
+                <h5><i class="fas fa-mobile-alt"></i> Digital Wallet</h5>
+                <div class="wallet-balance">{{formatCurrency(message.cardData.walletBalance)}}</div>
+              </div>
+              
+              <div class="linked-cards">
+                <h6>💳 Linked Cards</h6>
+                <div class="card-list">
+                  <div class="payment-card" *ngFor="let card of message.cardData.linkedCards">
+                    <div class="card-info">
+                      <i class="fab fa-cc-{{card.type.toLowerCase()}}"></i>
+                      <span>••••{{card.last4}}</span>
+                    </div>
+                    <span class="default-badge" *ngIf="card.isDefault">Default</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wallet-features">
+                <div class="feature-chips">
+                  <span class="feature-chip" *ngFor="let feature of message.cardData.features">
+                    {{feature}}
+                  </span>
+                </div>
+              </div>
+
+              <div class="recent-wallet-transactions">
+                <h6>🔄 Recent Transactions</h6>
+                <div class="wallet-transaction" *ngFor="let tx of message.cardData.recentTransactions">
+                  <div class="tx-info">
+                    <span class="merchant">{{tx.merchant}}</span>
+                    <span class="method">{{tx.method}}</span>
+                  </div>
+                  <div class="tx-amount negative">{{formatCurrency(getAbsoluteValue(tx.amount))}}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- QR Payments Card -->
+            <div class="qr-payment-card" *ngIf="message.cardData?.type === 'qr_payments'">
+              <div class="qr-header">
+                <h5><i class="fas fa-qrcode"></i> QR Payments</h5>
+              </div>
+              
+              <div class="qr-code-section">
+                <div class="qr-code-display">
+                  <div class="qr-placeholder">
+                    <i class="fas fa-qrcode qr-icon"></i>
+                    <p>Your Payment QR Code</p>
+                  </div>
+                </div>
+                <button class="qr-action-btn generate">
+                  <i class="fas fa-plus"></i> Generate QR
+                </button>
+                <button class="qr-action-btn scan">
+                  <i class="fas fa-camera"></i> Scan QR
+                </button>
+              </div>
+
+              <div class="qr-features">
+                <div class="feature-grid">
+                  <div class="qr-feature" *ngFor="let feature of message.cardData.features">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{feature}}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="recent-qr-payments">
+                <h6>📱 Recent QR Payments</h6>
+                <div class="qr-payment-item" *ngFor="let payment of message.cardData.recentQRPayments">
+                  <div class="payment-info">
+                    <span class="merchant">{{payment.merchant}}</span>
+                    <i class="fas fa-check-circle success-icon" *ngIf="payment.success"></i>
+                  </div>
+                  <div class="payment-amount">{{formatCurrency(payment.amount)}}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cryptocurrency Wallet Card -->
+            <div class="crypto-wallet-card" *ngIf="message.cardData?.type === 'crypto_wallet'">
+              <div class="crypto-header">
+                <h5><i class="fab fa-bitcoin"></i> Crypto Portfolio</h5>
+                <div class="total-value">{{formatCurrency(message.cardData.totalValue)}}</div>
+              </div>
+              
+              <div class="crypto-currencies">
+                <div class="crypto-item" *ngFor="let crypto of message.cardData.currencies">
+                  <div class="crypto-info">
+                    <div class="crypto-symbol">{{crypto.symbol}}</div>
+                    <div class="crypto-details">
+                      <span class="crypto-name">{{crypto.name}}</span>
+                      <span class="crypto-amount">{{crypto.amount}} {{crypto.symbol}}</span>
+                    </div>
+                  </div>
+                  <div class="crypto-value">
+                    <div class="value">{{formatCurrency(crypto.value)}}</div>
+                    <div class="change" [class.positive]="crypto.change > 0" [class.negative]="crypto.change < 0">
+                      {{crypto.change > 0 ? '+' : ''}}{{crypto.change}}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="crypto-features">
+                <span class="crypto-feature" *ngFor="let feature of message.cardData.features">
+                  {{feature}}
+                </span>
+              </div>
+            </div>
+
+            <!-- Loyalty Points Card -->
+            <div class="loyalty-points-card" *ngIf="message.cardData?.type === 'loyalty_points'">
+              <div class="loyalty-header">
+                <h5><i class="fas fa-star"></i> Loyalty Rewards</h5>
+                <div class="points-summary">
+                  <div class="total-points">{{message.cardData.totalPoints}} Points</div>
+                  <div class="cash-value">≈ {{formatCurrency(message.cardData.cashValue)}}</div>
+                </div>
+              </div>
+
+              <div class="tier-progress">
+                <div class="tier-info">
+                  <span class="current-tier">{{message.cardData.tier}}</span>
+                  <span class="points-to-next">{{message.cardData.pointsToNextTier}} points to next tier</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="75"></div>
+                </div>
+              </div>
+
+              <div class="available-rewards">
+                <h6>🎁 Available Rewards</h6>
+                <div class="reward-list">
+                  <div class="reward-item" *ngFor="let reward of message.cardData.availableRewards">
+                    <div class="reward-info">
+                      <span class="reward-name">{{reward.name}}</span>
+                      <span class="reward-category">{{reward.category}}</span>
+                    </div>
+                    <div class="reward-cost">{{reward.cost}} pts</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Social Payments Card -->
+            <div class="social-payments-card" *ngIf="message.cardData?.type === 'social_payments'">
+              <div class="social-header">
+                <h5><i class="fas fa-users"></i> Social Payments</h5>
+              </div>
+
+              <div class="connected-platforms">
+                <h6>🌐 Connected Platforms</h6>
+                <div class="platform-list">
+                  <span class="platform-chip" *ngFor="let platform of message.cardData.connectedPlatforms">
+                    <i class="fab fa-{{platform.toLowerCase()}}"></i>
+                    {{platform}}
+                  </span>
+                </div>
+              </div>
+
+              <div class="money-requests">
+                <h6>💸 Recent Requests</h6>
+                <div class="request-list">
+                  <div class="request-item" *ngFor="let request of message.cardData.recentRequests">
+                    <div class="request-info">
+                      <span class="friend-name">{{request.friend}}</span>
+                      <span class="request-reason">{{request.reason}}</span>
+                    </div>
+                    <div class="request-details">
+                      <div class="request-amount">{{formatCurrency(request.amount)}}</div>
+                      <span class="request-status" [class]="request.status">{{request.status}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="social-actions">
+                <button class="social-action-btn" *ngFor="let action of message.cardData.quickActions">
+                  {{action}}
+                </button>
+              </div>
+            </div>
+
+            <!-- Contactless Payments Card -->
+            <div class="contactless-card" *ngIf="message.cardData?.type === 'contactless_payments'">
+              <div class="contactless-header">
+                <h5><i class="fas fa-wave-square"></i> Contactless Payments</h5>
+                <div class="nfc-status" [class.enabled]="message.cardData.nfcEnabled">
+                  NFC {{message.cardData.nfcEnabled ? 'Enabled' : 'Disabled'}}
+                </div>
+              </div>
+
+              <div class="daily-limits">
+                <h6>📊 Daily Usage</h6>
+                <div class="limit-progress">
+                  <div class="limit-info">
+                    <span>{{formatCurrency(message.cardData.dailyUsed)}} / {{formatCurrency(message.cardData.dailyLimit)}}</span>
+                    <span class="remaining">{{formatCurrency(message.cardData.dailyLimit - message.cardData.dailyUsed)}} remaining</span>
+                  </div>
+                  <div class="limit-bar">
+                    <div class="limit-fill" [style.width.%]="(message.cardData.dailyUsed / message.cardData.dailyLimit) * 100"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="supported-methods">
+                <h6>📱 Supported Methods</h6>
+                <div class="method-list">
+                  <span class="method-chip" *ngFor="let method of message.cardData.supportedMethods">
+                    {{method}}
+                  </span>
+                </div>
+              </div>
+
+              <div class="recent-contactless">
+                <h6>📡 Recent Contactless</h6>
+                <div class="contactless-transaction" *ngFor="let tx of message.cardData.recentContactless">
+                  <div class="tx-info">
+                    <span class="merchant">{{tx.merchant}}</span>
+                    <span class="method">{{tx.method}}</span>
+                  </div>
+                  <div class="tx-amount">{{formatCurrency(tx.amount)}}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statement Download Card -->
+            <div class="statement-download-card" *ngIf="message.cardData?.type === 'statement_download'">
+              <div class="statement-header">
+                <h5>{{message.cardData.icon}} {{message.cardData.title}}</h5>
+                <p class="statement-desc">{{message.cardData.description}}</p>
+              </div>
+
+              <div class="download-options">
+                <h6>📅 Select Period</h6>
+                <div class="period-options">
+                  <div class="period-option" *ngFor="let option of message.cardData.downloadOptions" 
+                       (click)="downloadStatement(message.cardData.statementType, option.period)">
+                    <div class="period-info">
+                      <span class="period-name">{{option.period}}</span>
+                      <span class="file-size">{{option.size}}</span>
+                    </div>
+                    <i class="fas fa-download download-icon"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="quick-actions">
+                <button class="action-btn primary" (click)="downloadStatement(message.cardData.statementType, 'This Month')">
+                  <i class="fas fa-download"></i> Download PDF
+                </button>
+                <button class="action-btn secondary">
+                  <i class="fas fa-envelope"></i> Email Statement
+                </button>
+              </div>
+            </div>
+
+            <!-- Statement Options Card -->
+            <div class="statement-options-card" *ngIf="message.cardData?.type === 'statement_options'">
+              <div class="options-header">
+                <h5>{{message.cardData.title}}</h5>
+                <p class="options-desc">{{message.cardData.description}}</p>
+              </div>
+
+              <div class="statement-types">
+                                 <div class="statement-type" *ngFor="let type of message.cardData.statementTypes"
+                      [style.border-left-color]="type.color"
+                      (click)="sendMessage(type.title)">
+                  <div class="type-icon" [style.background-color]="type.color + '20'">
+                    {{type.icon}}
+                  </div>
+                  <div class="type-info">
+                    <h6>{{type.title}}</h6>
+                    <p>{{type.description}}</p>
+                  </div>
+                  <i class="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            </div>
+
+            <span class="message-time">{{getMessageTime(message.timestamp)}}</span>
+          </div>
+
+          <!-- Quick Replies -->
+          <div class="quick-replies" *ngIf="message.quickReplies && message.quickReplies.length > 0">
+            <button 
+              class="quick-reply-btn" 
+              *ngFor="let reply of message.quickReplies"
+              (click)="sendQuickReply(reply)">
+              {{reply}}
+            </button>
+          </div>
+        </div>
+
+        <!-- User Avatar for User Messages -->
+        <div class="message-avatar user-avatar" *ngIf="message.isFromUser">
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+
+      <!-- BankGenie Thinking Indicator -->
+      <div class="message-item bot-message" *ngIf="isTyping">
+        <div class="message-avatar genie-message-avatar thinking">
+          <i class="fas fa-magic"></i>
+        </div>
+        <div class="message-content">
+          <div class="typing-indicator">
+            <div class="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input -->
+  <div class="chat-input">
+    <!-- Magic Suggestions -->
+    <div class="magic-suggestions" *ngIf="showMagicSuggestions && !newMessage.trim()">
+      <button class="magic-spell-btn" (click)="castSpell('balance')">
+        <i class="fas fa-coins"></i> Balance Spell
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('transfer')">
+        <i class="fas fa-exchange-alt"></i> Transfer Magic
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('bills')">
+        <i class="fas fa-file-invoice"></i> Bill Magic
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('wallet')">
+        <i class="fas fa-mobile-alt"></i> Digital Wallet
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('qr')">
+        <i class="fas fa-qrcode"></i> QR Payments
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('crypto')">
+        <i class="fab fa-bitcoin"></i> Crypto Portfolio
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('statement')">
+        <i class="fas fa-file-alt"></i> Statements
+      </button>
+      <button class="magic-spell-btn" (click)="castSpell('tax')">
+        <i class="fas fa-file-invoice"></i> Tax Docs
+      </button>
+    </div>
+    
+    <div class="input-group">
+      <!-- Voice Magic Button -->
+      <button class="btn btn-magic voice-btn" 
+              [class.listening]="isListening"
+              (click)="toggleVoiceRecognition()"
+              title="Voice Magic">
+        <i class="fas fa-microphone" *ngIf="!isListening"></i>
+        <i class="fas fa-microphone-slash magic-pulse" *ngIf="isListening"></i>
+      </button>
+      
+      <input 
+        type="text" 
+        class="form-control magic-input"
+        [placeholder]="magicPlaceholder"
+        [(ngModel)]="newMessage"
+        (keypress)="onKeyPress($event)"
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"
+        #messageInput
+        autocomplete="off">
+      <button 
+        class="btn btn-primary send-btn magic-send" 
+        (click)="sendMessage()"
+        [disabled]="!newMessage.trim()">
+        <i class="fas fa-magic" *ngIf="newMessage.trim()"></i>
+        <i class="fas fa-paper-plane" *ngIf="!newMessage.trim()"></i>
+      </button>
+    </div>
+    
+    <!-- Voice Status -->
+    <div class="voice-status" *ngIf="isListening">
+      <div class="listening-animation">
+        <span class="listening-dot"></span>
+        <span class="listening-dot"></span>
+        <span class="listening-dot"></span>
+      </div>
+      <span class="voice-text">{{voiceStatus || 'Listening for your magical command...'}}</span>
+    </div>
+    
+    <!-- Voice Error Display -->
+    <div class="voice-error" *ngIf="voiceError && !isListening">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span class="error-text">{{voiceError}}</span>
+    </div>
+    
+    <!-- Voice Not Supported Warning -->
+    <div class="voice-warning" *ngIf="!isVoiceSupported && !voiceError">
+      <i class="fas fa-info-circle"></i>
+      <span class="warning-text">🎤 Voice magic requires Chrome, Edge, or Safari with HTTPS</span>
+    </div>
+  </div>
+</div> 

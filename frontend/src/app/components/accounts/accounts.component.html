@@ -1,0 +1,210 @@
+<!-- Accounts Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-wallet me-2 text-primary"></i>
+    My Accounts
+  </h1>
+  <button class="btn btn-primary" (click)="loadAccounts()">
+    <i class="fas fa-sync-alt me-2"></i>
+    Refresh
+  </button>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-3 text-muted">Loading your accounts...</p>
+</div>
+
+<!-- Accounts List -->
+<div class="row" *ngIf="!loading">
+  <div class="col-lg-4 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-list me-2"></i>
+          Account Overview
+        </h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          <div *ngFor="let account of accounts" 
+               class="list-group-item list-group-item-action"
+               [class.active]="selectedAccount?.id === account.id"
+               (click)="selectAccount(account)">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">
+                  <i [class]="getAccountTypeIcon(account.accountType)" class="me-2"></i>
+                  {{account.accountType}} Account
+                </h6>
+                <p class="mb-1 text-muted small">{{account.accountNumber}}</p>
+                <small class="text-muted">Opened: {{account.openedDate | date:'mediumDate'}}</small>
+              </div>
+              <div class="text-end">
+                <h5 class="mb-0 text-success">{{formatCurrency(account.balance)}}</h5>
+                <small class="text-muted">Available: {{formatCurrency(account.availableBalance)}}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Details -->
+  <div class="col-lg-8 mb-4">
+    <!-- Account Summary -->
+    <div class="card mb-4" *ngIf="selectedAccount">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i [class]="getAccountTypeIcon(selectedAccount.accountType)" class="me-2"></i>
+          {{selectedAccount.accountType}} Account Details
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Account Number</label>
+              <p class="fw-bold">{{selectedAccount.accountNumber}}</p>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Account Type</label>
+              <p class="fw-bold">{{selectedAccount.accountType}}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Current Balance</label>
+              <h4 class="text-success">{{formatCurrency(selectedAccount.balance)}}</h4>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Available Balance</label>
+              <h5 class="text-info">{{formatCurrency(selectedAccount.availableBalance)}}</h5>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-primary" 
+                      (click)="downloadStatement()"
+                      [disabled]="downloadingPdf">
+                <span *ngIf="downloadingPdf" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!downloadingPdf" class="fas fa-file-pdf me-2"></i>
+                {{downloadingPdf ? 'Generating PDF...' : 'Download PDF Statement'}}
+              </button>
+              <button class="btn btn-outline-primary" (click)="transferMoney()">
+                <i class="fas fa-exchange-alt me-2"></i>
+                Transfer Money
+              </button>
+              <button class="btn btn-outline-secondary" (click)="payBills()">
+                <i class="fas fa-file-invoice me-2"></i>
+                Pay Bills
+              </button>
+            </div>
+            <div class="mt-3">
+              <div class="alert alert-info py-2" *ngIf="!downloadingPdf">
+                <small>
+                  <i class="fas fa-info-circle me-1"></i>
+                  Click "Download PDF Statement" to instantly download a professional PDF with your transaction history.
+                  <br>
+                  <i class="fas fa-download me-1"></i>
+                  The PDF will be saved directly to your Downloads folder in one click.
+                </small>
+              </div>
+              <div class="alert alert-warning py-2" *ngIf="downloadingPdf">
+                <small>
+                  <i class="fas fa-clock me-1"></i>
+                  Please wait while we generate your PDF statement...
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="card" *ngIf="selectedAccount">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+          <i class="fas fa-history me-2"></i>
+          Transaction History
+        </h6>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-primary">Last 30 Days</button>
+          <button class="btn btn-outline-primary">Last 90 Days</button>
+          <button class="btn btn-outline-primary">Custom Range</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div *ngIf="transactions.length === 0" class="text-center text-muted py-4">
+          <i class="fas fa-inbox fa-3x mb-3"></i>
+          <h5>No Transactions Found</h5>
+          <p>Select an account to view transaction history</p>
+        </div>
+
+        <div class="table-responsive" *ngIf="transactions.length > 0">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let transaction of transactions">
+                <td>
+                  <small>{{transaction.date | date:'short'}}</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i [class]="getTransactionIcon(transaction.type)" class="me-2"></i>
+                    {{transaction.description}}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge"
+                        [class.bg-success]="transaction.type === 'CREDIT'"
+                        [class.bg-danger]="transaction.type === 'DEBIT'"
+                        [class.bg-info]="transaction.type === 'TRANSFER'">
+                    {{transaction.type}}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <span [class.text-success]="transaction.type === 'CREDIT'"
+                        [class.text-danger]="transaction.type === 'DEBIT'">
+                    {{transaction.type === 'DEBIT' ? '-' : '+'}}{{formatCurrency(transaction.amount)}}
+                  </span>
+                </td>
+                <td class="text-end fw-bold">
+                  {{formatCurrency(transaction.balance)}}
+                </td>
+                <td>
+                  <span class="badge bg-success">{{transaction.status}}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Account Selected -->
+    <div class="card" *ngIf="!selectedAccount">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-hand-pointer fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Select an Account</h5>
+        <p class="text-muted">Click on an account from the list to view details and transaction history</p>
+      </div>
+    </div>
+  </div>
+</div> 

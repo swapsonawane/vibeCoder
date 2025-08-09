@@ -1,0 +1,154 @@
+/* Bill Payment Form Styles */
+.bill-payment-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.bill-payment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Upcoming Bills */
+.bill-item {
+  border-left: 3px solid #ff9800;
+  transition: all 0.2s ease;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.bill-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+}
+
+.bill-overdue {
+  border-left-color: #f44336;
+}
+
+.bill-due-soon {
+  border-left-color: #ff9800;
+}
+
+.bill-upcoming {
+  border-left-color: #2196f3;
+}
+
+/* Payee Cards */
+.payee-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  text-align: center;
+  padding: 1rem;
+}
+
+.payee-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.payee-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #2196f3;
+}
+
+/* Payment History */
+.payment-item {
+  border-left: 3px solid #4caf50;
+  transition: all 0.2s ease;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.payment-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+}
+
+.payment-completed {
+  border-left-color: #4caf50;
+}
+
+.payment-scheduled {
+  border-left-color: #ff9800;
+}
+
+.payment-failed {
+  border-left-color: #f44336;
+}
+
+/* Status Badges */
+.badge-completed {
+  background-color: #4caf50;
+}
+
+.badge-scheduled {
+  background-color: #ff9800;
+}
+
+.badge-failed {
+  background-color: #f44336;
+}
+
+.badge-overdue {
+  background-color: #f44336;
+}
+
+/* Form Controls */
+.form-select, .form-control {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+/* Due Date Indicators */
+.due-indicator {
+  font-size: 0.875em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.due-today {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.due-soon {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.due-later {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bill-payment-card {
+    margin-bottom: 1rem;
+  }
+  
+  .bill-item, .payment-item {
+    padding: 0.75rem;
+  }
+  
+  .payee-card {
+    margin-bottom: 1rem;
+  }
+} 

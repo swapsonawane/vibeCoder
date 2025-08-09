@@ -1,0 +1,92 @@
+/* Transfer Form Styles */
+.transfer-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.transfer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Account Selection */
+.account-selector {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Transfer Limits */
+.transfer-limits {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Recent Transfers */
+.transfer-item {
+  border-left: 3px solid #2196f3;
+  transition: all 0.2s ease;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.transfer-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+}
+
+.transfer-completed {
+  border-left-color: #4caf50;
+}
+
+.transfer-pending {
+  border-left-color: #ff9800;
+}
+
+.transfer-failed {
+  border-left-color: #f44336;
+}
+
+/* Status Badges */
+.badge-completed {
+  background-color: #4caf50;
+}
+
+.badge-pending {
+  background-color: #ff9800;
+}
+
+.badge-failed {
+  background-color: #f44336;
+}
+
+/* Form Controls */
+.form-select, .form-control {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .transfer-card {
+    margin-bottom: 1rem;
+  }
+  
+  .transfer-item {
+    padding: 0.75rem;
+  }
+} 

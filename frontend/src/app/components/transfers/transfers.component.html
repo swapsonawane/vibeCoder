@@ -1,0 +1,183 @@
+<!-- Transfers Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">
+    <i class="fas fa-exchange-alt me-2 text-primary"></i>
+    Fund Transfers
+  </h1>
+  <div class="btn-group">
+    <button class="btn btn-success" (click)="addBeneficiary()">
+      <i class="fas fa-plus me-2"></i>
+      Add Beneficiary
+    </button>
+    <button class="btn btn-outline-primary" (click)="viewAllBeneficiaries()">
+      <i class="fas fa-list me-2"></i>
+      View All Beneficiaries
+    </button>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Transfer Form -->
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-paper-plane me-2"></i>
+          New Transfer
+        </h6>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="transferForm" (ngSubmit)="onSubmit()">
+          <!-- Transfer Type -->
+          <div class="mb-3">
+            <label class="form-label">Transfer Type</label>
+            <select class="form-select" formControlName="transferType">
+              <option value="INTERNAL">Internal Transfer</option>
+              <option value="EXTERNAL">External Transfer</option>
+            </select>
+          </div>
+
+          <!-- From Account -->
+          <div class="mb-3">
+            <label class="form-label">From Account</label>
+            <select class="form-select" 
+                    formControlName="fromAccount"
+                    [class.is-invalid]="submitted && f['fromAccount'].errors">
+              <option value="">Select Account</option>
+              <option *ngFor="let account of accounts" [value]="account.id">
+                {{account.accountType}} - {{account.accountNumber}} 
+                ({{formatCurrency(account.balance)}})
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && f['fromAccount'].errors">
+              Please select a source account
+            </div>
+          </div>
+
+          <!-- To Account -->
+          <div class="mb-3">
+            <label class="form-label">To Account</label>
+            <select class="form-select" 
+                    formControlName="toAccount"
+                    [class.is-invalid]="submitted && f['toAccount'].errors">
+              <option value="">Select Destination</option>
+              <optgroup label="My Accounts" *ngIf="f['transferType'].value === 'INTERNAL'">
+                <option *ngFor="let account of accounts" [value]="account.id">
+                  {{account.accountType}} - {{account.accountNumber}}
+                </option>
+              </optgroup>
+              <optgroup label="Beneficiaries" *ngIf="f['transferType'].value === 'EXTERNAL'">
+                <option *ngFor="let beneficiary of beneficiaries" [value]="beneficiary.id">
+                  {{beneficiary.name}} - {{beneficiary.accountNumber}}
+                </option>
+              </optgroup>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && f['toAccount'].errors">
+              Please select a destination account
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="mb-3">
+            <label class="form-label">Amount ($)</label>
+            <input type="number" 
+                   class="form-control" 
+                   formControlName="amount"
+                   [class.is-invalid]="submitted && f['amount'].errors"
+                   placeholder="0.00"
+                   step="0.01">
+            <div class="invalid-feedback" *ngIf="submitted && f['amount'].errors">
+              <div *ngIf="f['amount'].errors['required']">Amount is required</div>
+              <div *ngIf="f['amount'].errors['min']">Amount must be greater than 0</div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" 
+                   class="form-control" 
+                   formControlName="description"
+                   [class.is-invalid]="submitted && f['description'].errors"
+                   placeholder="Transfer description">
+            <div class="invalid-feedback" *ngIf="submitted && f['description'].errors">
+              Description is required
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid">
+            <button type="submit" 
+                    class="btn btn-primary" 
+                    [disabled]="loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!loading" class="fas fa-paper-plane me-2"></i>
+              {{loading ? 'Processing...' : 'Transfer Money'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Transfers -->
+  <div class="col-lg-6 mb-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+          <i class="fas fa-history me-2"></i>
+          Recent Transfers
+        </h6>
+        <a href="#" class="text-decoration-none">View All</a>
+      </div>
+      <div class="card-body">
+        <div *ngIf="recentTransfers.length === 0" class="text-center text-muted py-4">
+          <i class="fas fa-inbox fa-2x mb-2"></i>
+          <p class="mb-0">No recent transfers</p>
+        </div>
+
+        <div *ngFor="let transfer of recentTransfers" class="border-start border-3 border-primary ps-3 py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{transfer.description}}</h6>
+              <p class="mb-1 text-muted small">To: {{transfer.recipientName}}</p>
+              <small class="text-muted">{{transfer.date | date:'short'}}</small>
+            </div>
+            <div class="text-end">
+              <h6 class="mb-1 text-danger">-{{formatCurrency(transfer.amount)}}</h6>
+              <span class="badge" [class]="getStatusBadgeClass(transfer.status)">
+                {{transfer.status}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Limits -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-shield-alt me-2"></i>
+          Transfer Limits
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-4">
+            <h5 class="text-success">$10,000</h5>
+            <small class="text-muted">Daily Limit</small>
+          </div>
+          <div class="col-4">
+            <h5 class="text-info">$50,000</h5>
+            <small class="text-muted">Monthly Limit</small>
+          </div>
+          <div class="col-4">
+            <h5 class="text-warning">$8,500</h5>
+            <small class="text-muted">Remaining Today</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
