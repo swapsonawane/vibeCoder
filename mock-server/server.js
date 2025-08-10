@@ -228,6 +228,27 @@ app.get('/api/notifications/unread/count', authenticateToken, (req, res) => {
   res.json({ count: 1 });
 });
 
+app.post('/api/financial-advice', (req, res) => {
+  const { salary, expenses, futureGoal } = req.body;
+  let advice = [];
+  let insights = [];
+
+  if (salary > expenses) {
+    advice.push('You are saving money each month. Consider investing the surplus.');
+    insights.push({ title: 'Savings Rate', detail: `You save $${salary - expenses} per month.` });
+  } else {
+    advice.push('Your expenses exceed your salary. Review your spending and create a budget.');
+    insights.push({ title: 'Deficit', detail: `You are overspending by $${expenses - salary} per month.` });
+  }
+
+  if (futureGoal) {
+    advice.push(`To achieve your goal "${futureGoal}", estimate the total cost and set a monthly savings target. Track your progress regularly.`);
+    insights.push({ title: 'Goal Planning', detail: `Future goal: ${futureGoal}` });
+  }
+
+  res.json({ advice, insights });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

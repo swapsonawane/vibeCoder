@@ -37,6 +37,7 @@ import { NotificationService } from './services/notification.service';
 import { BeneficiaryService } from './services/beneficiary.service';
 import { AiChatService } from './services/ai-chat.service';
 import { PdfStatementService } from './services/pdf-statement.service';
+import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +53,8 @@ import { PdfStatementService } from './services/pdf-statement.service';
     ViewBeneficiariesComponent,
     MyPayeesComponent,
     ChatbotComponent,
-    Nl2brPipe
+    Nl2brPipe,
+    FinancialAdviceComponent
   ],
   imports: [
     BrowserModule,

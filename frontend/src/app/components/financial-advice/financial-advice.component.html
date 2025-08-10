@@ -1,0 +1,32 @@
+<form (ngSubmit)="submit()" class="financial-advice__form">
+    <div class="financial-advice__field">
+        <label for="salary">Salary</label>
+        <input [(ngModel)]="salary" name="salary" id="salary" type="number" required />
+    </div>
+
+    <div class="financial-advice__field">
+        <label for="expenses">Expenses</label>
+        <input [(ngModel)]="expenses" name="expenses" id="expenses" type="number" required />
+    </div>
+
+    <div class="financial-advice__field">
+        <label for="futureGoal">Future Goal</label>
+        <input [(ngModel)]="futureGoal" name="futureGoal" id="futureGoal" />
+    </div>
+
+    <button type="submit" class="financial-advice__submit-btn">Get Advice</button>
+</form>
+
+<div *ngIf="response" class="financial-advice__response">
+    <h3>Advice</h3>
+    <ul>
+        <li *ngFor="let a of response.advice">{{ a }}</li>
+    </ul>
+
+    <h3>Insights</h3>
+    <ul>
+        <li *ngFor="let i of response.insights">
+            <strong>{{ i.title }}</strong>: {{ i.detail }}
+        </li>
+    </ul>
+</div>
