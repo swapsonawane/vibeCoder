@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AccountService } from '../../services/account.service';
+import { WalletService } from '../../services/wallet.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,6 +16,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   recentTransfers: any[] = [];
   upcomingBills: any[] = [];
   notifications: any[] = [];
+  wallet: any = null;
+  walletSummary: any = null;
   loading = true;
   private userSubscription: Subscription = new Subscription();
 

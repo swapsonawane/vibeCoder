@@ -24,6 +24,7 @@ import { AddBeneficiaryComponent } from './components/beneficiaries/add-benefici
 import { ViewBeneficiariesComponent } from './components/beneficiaries/view-beneficiaries/view-beneficiaries.component';
 import { MyPayeesComponent } from './components/payees/my-payees.component';
 import { ChatbotComponent } from './components/chatbot/chatbot.component';
+import { WalletComponent } from './components/wallet/wallet.component';
 
 // Pipes
 import { Nl2brPipe } from './pipes/nl2br.pipe';
@@ -37,6 +38,7 @@ import { NotificationService } from './services/notification.service';
 import { BeneficiaryService } from './services/beneficiary.service';
 import { AiChatService } from './services/ai-chat.service';
 import { PdfStatementService } from './services/pdf-statement.service';
+import { WalletService } from './services/wallet.service';
 
 @NgModule({
   declarations: [
@@ -52,6 +54,7 @@ import { PdfStatementService } from './services/pdf-statement.service';
     ViewBeneficiariesComponent,
     MyPayeesComponent,
     ChatbotComponent,
+    WalletComponent,
     Nl2brPipe
   ],
   imports: [
@@ -72,7 +75,8 @@ import { PdfStatementService } from './services/pdf-statement.service';
     NotificationService,
     BeneficiaryService,
     AiChatService,
-    PdfStatementService
+    PdfStatementService,
+    WalletService
   ],
   bootstrap: [AppComponent]
 })

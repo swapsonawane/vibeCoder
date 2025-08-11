@@ -12,6 +12,7 @@ import { SettingsComponent } from './components/settings/settings.component';
 import { AddBeneficiaryComponent } from './components/beneficiaries/add-beneficiary/add-beneficiary.component';
 import { ViewBeneficiariesComponent } from './components/beneficiaries/view-beneficiaries/view-beneficiaries.component';
 import { MyPayeesComponent } from './components/payees/my-payees.component';
+import { WalletComponent } from './components/wallet/wallet.component';
 
 // Guards
 import { AuthGuard } from './guards/auth.guard';
@@ -37,6 +38,11 @@ const routes: Routes = [
   { 
     path: 'bills', 
     component: BillPaymentComponent,
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'wallet', 
+    component: WalletComponent, 
     canActivate: [AuthGuard] 
   },
   { 
