@@ -392,3 +392,50 @@
   transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 
+/* Follow-up Management Section */
+.follow-up-management {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.follow-up-management h6 {
+  color: #495057;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.follow-up-management .btn {
+  margin-bottom: 10px;
+}
+
+/* Download Buttons */
+.download-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.download-buttons .btn {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Responsive adjustments for follow-up management */
+@media (max-width: 768px) {
+  .follow-up-management .d-md-flex {
+    flex-direction: column;
+  }
+  
+  .download-buttons {
+    flex-direction: column;
+  }
+  
+  .download-buttons .btn {
+    min-width: auto;
+  }
+}
+

@@ -35,7 +35,7 @@
             Monthly Expenses Breakdown
         </h3>
         
-        <div class="expense-grid">
+        <div class="expense-grid" formGroupName="expenses">
             <div class="form-group" *ngFor="let category of ['housing', 'groceries', 'transportation', 'utilities', 'entertainment', 'savings', 'other']">
                 <label [for]="category">
                     <i class="fas fa-tag me-2"></i>
@@ -44,9 +44,13 @@
                 <input 
                     type="number" 
                     [id]="category" 
-                    [formControlName]="'expenses.' + category" 
+                    [formControlName]="category" 
                     class="form-control"
-                    [placeholder]="'Enter ' + category + ' expenses'">
+                    [placeholder]="'Enter ' + category + ' expenses'"
+                    [class.is-invalid]="getFieldError('expenses.' + category)">
+                <div *ngIf="getFieldError('expenses.' + category)" class="invalid-feedback">
+                    {{ getFieldError('expenses.' + category) }}
+                </div>
             </div>
         </div>
 
@@ -71,7 +75,7 @@
                     <div class="summary-item">
                         <span class="summary-label">Savings Rate:</span>
                         <span class="summary-value text-info">
-                            {{ (getTotalExpenses() > 0 ? (adviceForm.get('expenses.savings')?.value || 0) / getTotalExpenses() * 100 : 0) | number:'1.0-1' }}%
+                            {{ (getTotalExpenses() > 0 ? (getSavingsValue() || 0) / getTotalExpenses() * 100 : 0) | number:'1.0-1' }}%
                         </span>
                     </div>
                 </div>
@@ -169,16 +173,35 @@
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Next Steps:</strong> Consider implementing the advice above and track your progress over time.
                 </div>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary">
-                        <i class="fas fa-download me-2"></i>
-                        Download Financial Report
-                    </button>
-                    <button class="btn btn-outline-success">
-                        <i class="fas fa-calendar-plus me-2"></i>
-                        Schedule Follow-up Review
-                    </button>
-                </div>
+                                 <div class="d-grid gap-2">
+                     <button class="btn btn-outline-primary" (click)="downloadFinancialReport()" [disabled]="!adviceResponse">
+                         <i class="fas fa-download me-2"></i>
+                         Download Report (TXT)
+                     </button>
+                     <button class="btn btn-outline-secondary" (click)="downloadReportAsHTML()" [disabled]="!adviceResponse">
+                         <i class="fas fa-file-code me-2"></i>
+                         Download Report (HTML)
+                     </button>
+                     <button class="btn btn-outline-success" (click)="scheduleFollowUpReview()" [disabled]="!adviceResponse">
+                         <i class="fas fa-calendar-plus me-2"></i>
+                         Schedule Follow-up Review
+                     </button>
+                 </div>
+                 
+                 <!-- Follow-up Management -->
+                 <div class="mt-3">
+                     <h6><i class="fas fa-calendar-check me-2"></i>Follow-up Management</h6>
+                     <div class="d-grid gap-2 d-md-flex">
+                         <button class="btn btn-outline-info btn-sm" (click)="viewScheduledFollowUps()">
+                             <i class="fas fa-eye me-2"></i>
+                             View Scheduled Reviews
+                         </button>
+                         <button class="btn btn-outline-warning btn-sm" (click)="clearFollowUpReminders()">
+                             <i class="fas fa-trash me-2"></i>
+                             Clear All Reminders
+                         </button>
+                     </div>
+                 </div>
             </div>
         </div>
     </div>

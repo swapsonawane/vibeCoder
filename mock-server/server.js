@@ -598,9 +598,16 @@ app.get('/api/financial-analysis/bill-reminders/priorities', authenticateToken, 
 // Financial Insights
 app.get('/api/financial-analysis/insights', authenticateToken, (req, res) => {
   try {
+    console.log('User from token:', req.user);
+    console.log('User ID from token:', req.user.userId);
+    console.log('Available insights:', financialInsights);
+    
     const userInsights = financialInsights.filter(i => i.userId === req.user.userId);
+    console.log('Filtered insights for user:', userInsights);
+    
     res.json(userInsights);
   } catch (error) {
+    console.log('Error in insights endpoint:', error);
     res.status(500).json({ message: 'Failed to fetch financial insights', error: error.message });
   }
 });
