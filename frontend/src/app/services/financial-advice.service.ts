@@ -15,7 +15,7 @@ export interface FinancialAdviceResponse {
 
 @Injectable({ providedIn: 'root' })
 export class FinancialAdviceService {
-  private apiUrl = 'http://localhost:8080/api/financial-advice/custom';
+  private apiUrl = 'http://localhost:8080/api/financial-advice';
 
   constructor(private http: HttpClient) {}
 
