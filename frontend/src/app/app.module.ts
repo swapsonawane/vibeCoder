@@ -25,9 +25,6 @@ import { ViewBeneficiariesComponent } from './components/beneficiaries/view-bene
 import { MyPayeesComponent } from './components/payees/my-payees.component';
 import { ChatbotComponent } from './components/chatbot/chatbot.component';
 
-// Pipes
-import { Nl2brPipe } from './pipes/nl2br.pipe';
-
 // Services
 import { AuthService } from './services/auth.service';
 import { AccountService } from './services/account.service';
@@ -39,6 +36,8 @@ import { AiChatService } from './services/ai-chat.service';
 import { PdfStatementService } from './services/pdf-statement.service';
 import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
 import { FinancialAdviceService } from './services/financial-advice.service';
+import { FinancialAnalysisComponent } from './components/financial-analysis/financial-analysis.component';
+import { FinancialAnalysisService } from './services/financial-analysis.service';
 
 @NgModule({
   declarations: [
@@ -54,8 +53,8 @@ import { FinancialAdviceService } from './services/financial-advice.service';
     ViewBeneficiariesComponent,
     MyPayeesComponent,
     ChatbotComponent,
-    Nl2brPipe,
-    FinancialAdviceComponent
+    FinancialAdviceComponent,
+    FinancialAnalysisComponent
   ],
   imports: [
     BrowserModule,
@@ -76,7 +75,8 @@ import { FinancialAdviceService } from './services/financial-advice.service';
     BeneficiaryService,
     AiChatService,
     PdfStatementService,
-    FinancialAdviceService
+    FinancialAdviceService,
+    FinancialAnalysisService
   ],
   bootstrap: [AppComponent]
 })

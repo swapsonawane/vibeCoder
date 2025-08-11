@@ -13,6 +13,7 @@ import { AddBeneficiaryComponent } from './components/beneficiaries/add-benefici
 import { ViewBeneficiariesComponent } from './components/beneficiaries/view-beneficiaries/view-beneficiaries.component';
 import { MyPayeesComponent } from './components/payees/my-payees.component';
 import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
+import { FinancialAnalysisComponent } from './components/financial-analysis/financial-analysis.component';
 
 // Guards
 import { AuthGuard } from './guards/auth.guard';
@@ -83,6 +84,11 @@ const routes: Routes = [
   {
       path: 'financial-advice',
       component: FinancialAdviceComponent,
+      canActivate: [AuthGuard]
+  },
+  {
+      path: 'financial-analysis',
+      component: FinancialAnalysisComponent,
       canActivate: [AuthGuard]
   },
   { path: '**', redirectTo: '/dashboard' }

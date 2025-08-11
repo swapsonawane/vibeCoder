@@ -1,0 +1,487 @@
+<div class="financial-analysis-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-chart-line me-2"></i>
+          Financial Analysis
+        </h2>
+        <p class="text-muted mb-0">Comprehensive financial insights and forecasting</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="refreshData()" [disabled]="loading">
+        <i class="fas fa-sync-alt me-2" [class.fa-spin]="loading"></i>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Loading financial data...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" id="financialTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                [class.active]="activeTab === 'overview'"
+                (click)="onTabChange('overview')"
+                type="button">
+          <i class="fas fa-tachometer-alt me-2"></i>
+          Overview
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                [class.active]="activeTab === 'cashflow'"
+                (click)="onTabChange('cashflow')"
+                type="button">
+          <i class="fas fa-chart-area me-2"></i>
+          Cash Flow Forecast
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                [class.active]="activeTab === 'spending'"
+                (click)="onTabChange('spending')"
+                type="button">
+          <i class="fas fa-pie-chart me-2"></i>
+          Spending Analysis
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                [class.active]="activeTab === 'bills'"
+                (click)="onTabChange('bills')"
+                type="button">
+          <i class="fas fa-calendar-check me-2"></i>
+          Bill Reminders
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" 
+                [class.active]="activeTab === 'insights'"
+                (click)="onTabChange('insights')"
+                type="button">
+          <i class="fas fa-lightbulb me-2"></i>
+          Insights
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="financialTabContent">
+      
+      <!-- Overview Tab -->
+      <div class="tab-pane fade" 
+           [class.show]="activeTab === 'overview'"
+           [class.active]="activeTab === 'overview'">
+        <div class="row">
+          <!-- Quick Stats -->
+          <div class="col-md-3 mb-4">
+            <div class="card stat-card">
+              <div class="card-body text-center">
+                <i class="fas fa-dollar-sign text-success mb-2" style="font-size: 2rem;"></i>
+                <h4 class="card-title">{{ cashFlowForecast?.projectedBalance | currency }}</h4>
+                <p class="card-text text-muted">Projected Balance</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 mb-4">
+            <div class="card stat-card">
+              <div class="card-body text-center">
+                <i class="fas fa-arrow-up text-success mb-2" style="font-size: 2rem;"></i>
+                <h4 class="card-title">{{ cashFlowForecast?.projectedIncome | currency }}</h4>
+                <p class="card-text text-muted">Projected Income</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 mb-4">
+            <div class="card stat-card">
+              <div class="card-body text-center">
+                <i class="fas fa-arrow-down text-danger mb-2" style="font-size: 2rem;"></i>
+                <h4 class="card-title">{{ cashFlowForecast?.projectedExpenses | currency }}</h4>
+                <p class="card-text text-muted">Projected Expenses</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 mb-4">
+            <div class="card stat-card">
+              <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle text-warning mb-2" style="font-size: 2rem;"></i>
+                <h4 class="card-title">{{ billReminders.length }}</h4>
+                <p class="card-text text-muted">Pending Bills</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Insights -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-lightbulb me-2"></i>
+                  Recent Insights
+                </h5>
+              </div>
+              <div class="card-body">
+                <div *ngFor="let insight of financialInsights.slice(0, 3)" 
+                     class="alert" 
+                     [ngClass]="getSeverityClass(insight.severity)"
+                     role="alert">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="alert-heading">{{ insight.title }}</h6>
+                      <p class="mb-1">{{ insight.description }}</p>
+                      <small class="text-muted">
+                        {{ insight.createdAt | date:'short' }}
+                      </small>
+                    </div>
+                    <span class="badge" [ngClass]="getSeverityClass(insight.severity)">
+                      {{ insight.severity }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cash Flow Forecast Tab -->
+      <div class="tab-pane fade" 
+           [class.show]="activeTab === 'cashflow'"
+           [class.active]="activeTab === 'cashflow'">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-chart-area me-2"></i>
+                Cash Flow Forecast
+              </h5>
+              <div class="btn-group" role="group">
+                <button type="button" 
+                        class="btn btn-outline-primary btn-sm"
+                        [class.active]="selectedForecastPeriod === forecastPeriodEnum.WEEKLY"
+                        (click)="onForecastPeriodChange(forecastPeriodEnum.WEEKLY)">
+                  Weekly
+                </button>
+                <button type="button" 
+                        class="btn btn-outline-primary btn-sm"
+                        [class.active]="selectedForecastPeriod === forecastPeriodEnum.MONTHLY"
+                        (click)="onForecastPeriodChange(forecastPeriodEnum.MONTHLY)">
+                  Monthly
+                </button>
+                <button type="button" 
+                        class="btn btn-outline-primary btn-sm"
+                        [class.active]="selectedForecastPeriod === forecastPeriodEnum.QUARTERLY"
+                        (click)="onForecastPeriodChange(forecastPeriodEnum.QUARTERLY)">
+                  Quarterly
+                </button>
+                <button type="button" 
+                        class="btn btn-outline-primary btn-sm"
+                        [class.active]="selectedForecastPeriod === forecastPeriodEnum.YEARLY"
+                        (click)="onForecastPeriodChange(forecastPeriodEnum.YEARLY)">
+                  Yearly
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngIf="cashFlowForecast" class="row">
+              <div class="col-md-8">
+                <div class="forecast-chart-placeholder">
+                  <div class="text-center py-5">
+                    <i class="fas fa-chart-line text-muted" style="font-size: 4rem;"></i>
+                    <p class="mt-3 text-muted">Cash Flow Chart Visualization</p>
+                    <p class="text-muted">Chart library integration would go here</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="forecast-summary">
+                  <h6>Forecast Summary</h6>
+                  <div class="mb-3">
+                    <label class="form-label">Period</label>
+                    <p class="mb-0">{{ cashFlowForecast.startDate | date:'shortDate' }} - {{ cashFlowForecast.endDate | date:'shortDate' }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Confidence Level</label>
+                    <div class="progress">
+                      <div class="progress-bar" 
+                           [style.width.%]="cashFlowForecast.confidence"
+                           role="progressbar">
+                        {{ cashFlowForecast.confidence }}%
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Key Factors</label>
+                    <ul class="list-unstyled">
+                      <li *ngFor="let factor of cashFlowForecast.factors" class="mb-2">
+                        <small class="text-muted">{{ factor.description }}</small>
+                        <br>
+                        <span [class.text-success]="factor.impact > 0" 
+                              [class.text-danger]="factor.impact < 0">
+                          {{ factor.impact | currency }}
+                        </span>
+                        <span class="text-muted">({{ factor.probability }}% probability)</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spending Analysis Tab -->
+      <div class="tab-pane fade" 
+           [class.show]="activeTab === 'spending'"
+           [class.active]="activeTab === 'spending'">
+        <div class="row">
+          <!-- Spending Categories -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-pie-chart me-2"></i>
+                  Spending by Category
+                </h5>
+              </div>
+              <div class="card-body">
+                <div *ngFor="let category of spendingCategories" class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                      <i class="fas" [class]="category.icon" 
+                         [style.color]="category.color" 
+                         style="width: 20px;"></i>
+                      <span class="ms-2">{{ category.name }}</span>
+                    </div>
+                    <span class="fw-bold">{{ category.spent | currency }}</span>
+                  </div>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar" 
+                         [style.width.%]="(category.spent / (category.budget || category.spent)) * 100"
+                         [style.background-color]="category.color">
+                    </div>
+                  </div>
+                  <small class="text-muted">
+                    {{ category.spent | currency }} of {{ category.budget | currency }} budget
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spending Patterns -->
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-chart-line me-2"></i>
+                  Spending Trends
+                </h5>
+              </div>
+              <div class="card-body">
+                <div *ngFor="let pattern of spendingPatterns" class="mb-3 p-3 border rounded">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">{{ pattern.category }}</h6>
+                    <i class="fas" 
+                       [class]="getTrendIcon(pattern.trend)"
+                       [ngClass]="getTrendColor(pattern.trend)">
+                    </i>
+                  </div>
+                  <div class="row text-center">
+                    <div class="col-4">
+                      <small class="text-muted">Total</small>
+                      <p class="mb-0 fw-bold">{{ pattern.totalAmount | currency }}</p>
+                    </div>
+                    <div class="col-4">
+                      <small class="text-muted">Average</small>
+                      <p class="mb-0 fw-bold">{{ pattern.averageAmount | currency }}</p>
+                    </div>
+                    <div class="col-4">
+                      <small class="text-muted">Frequency</small>
+                      <p class="mb-0 fw-bold">{{ pattern.frequency }}/month</p>
+                    </div>
+                  </div>
+                  <small class="text-muted">
+                    {{ pattern.percentageOfTotal }}% of total spending
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bill Reminders Tab -->
+      <div class="tab-pane fade" 
+           [class.show]="activeTab === 'bills'"
+           [class.active]="activeTab === 'bills'">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-calendar-check me-2"></i>
+                Bill Reminders & Payment Suggestions
+              </h5>
+              <button class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-2"></i>
+                Add Reminder
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngFor="let bill of billReminders" class="bill-reminder-item mb-4 p-3 border rounded">
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="mb-1">{{ bill.billName }}</h6>
+                      <p class="text-muted mb-1">{{ bill.category }}</p>
+                      <span class="badge" [ngClass]="getPriorityClass(bill.priority)">
+                        {{ bill.priority }}
+                      </span>
+                    </div>
+                    <div class="text-end">
+                      <h5 class="mb-1">{{ bill.amount | currency }}</h5>
+                      <small class="text-muted">
+                        Due in {{ getDaysUntilDue(bill.dueDate) }} days
+                      </small>
+                    </div>
+                  </div>
+                  
+                  <!-- Payment Suggestion -->
+                  <div class="payment-suggestion mt-3 p-3 bg-light rounded">
+                    <h6 class="mb-2">
+                      <i class="fas fa-lightbulb text-warning me-2"></i>
+                      Payment Suggestion
+                    </h6>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <small class="text-muted">Suggested Amount</small>
+                        <p class="mb-1 fw-bold">{{ bill.paymentSuggestion.suggestedAmount | currency }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <small class="text-muted">Suggested Date</small>
+                        <p class="mb-1 fw-bold">{{ bill.paymentSuggestion.suggestedDate | date:'shortDate' }}</p>
+                      </div>
+                    </div>
+                    <p class="mb-2"><strong>Reason:</strong> {{ bill.paymentSuggestion.reason }}</p>
+                    <p class="mb-0 text-success"><strong>Impact:</strong> {{ bill.paymentSuggestion.impact }}</p>
+                  </div>
+                </div>
+                
+                <div class="col-md-4">
+                  <div class="d-grid gap-2">
+                    <button class="btn btn-success btn-sm">
+                      <i class="fas fa-check me-2"></i>
+                      Pay Now
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm">
+                      <i class="fas fa-clock me-2"></i>
+                      Schedule
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm">
+                      <i class="fas fa-edit me-2"></i>
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="billReminders.length === 0" class="text-center py-5">
+              <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
+              <p class="mt-3 text-muted">No bill reminders found</p>
+              <button class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Add Your First Bill Reminder
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights Tab -->
+      <div class="tab-pane fade" 
+           [class.show]="activeTab === 'insights'"
+           [class.active]="activeTab === 'insights'">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-lightbulb me-2"></i>
+              Financial Insights & Recommendations
+            </h5>
+          </div>
+          <div class="card-body">
+            <div *ngFor="let insight of financialInsights" 
+                 class="insight-item mb-4">
+              <div class="alert" 
+                   [ngClass]="getSeverityClass(insight.severity)"
+                   role="alert">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="flex-grow-1">
+                    <h6 class="alert-heading d-flex align-items-center">
+                      <i class="fas fa-lightbulb me-2"></i>
+                      {{ insight.title }}
+                    </h6>
+                    <p class="mb-2">{{ insight.description }}</p>
+                    
+                    <div *ngIf="insight.actionItems && insight.actionItems.length > 0" class="mt-3">
+                      <strong>Recommended Actions:</strong>
+                      <ul class="mb-0 mt-2">
+                        <li *ngFor="let action of insight.actionItems">{{ action }}</li>
+                      </ul>
+                    </div>
+                    
+                    <small class="text-muted">
+                      {{ insight.createdAt | date:'medium' }}
+                    </small>
+                  </div>
+                  
+                  <div class="ms-3">
+                    <span class="badge" [ngClass]="getSeverityClass(insight.severity)">
+                      {{ insight.severity }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div *ngIf="insight.actionable" class="mt-3">
+                  <button class="btn btn-sm btn-outline-primary me-2">
+                    <i class="fas fa-check me-1"></i>
+                    Take Action
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="financialInsights.length === 0" class="text-center py-5">
+              <i class="fas fa-lightbulb text-muted" style="font-size: 3rem;"></i>
+              <p class="mt-3 text-muted">No insights available at the moment</p>
+              <p class="text-muted">Continue using your account to generate personalized insights</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

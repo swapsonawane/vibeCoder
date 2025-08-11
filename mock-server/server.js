@@ -28,6 +28,185 @@ const users = [
   }
 ];
 
+// Financial Analysis Mock Data
+const cashFlowForecasts = [
+  {
+    id: '1',
+    userId: '1',
+    period: '3_MONTHS',
+    forecastDate: new Date('2024-01-01'),
+    projectedIncome: 7500,
+    projectedExpenses: 5200,
+    projectedSavings: 2300,
+    confidence: 85,
+    factors: [
+      { type: 'INCOME_INCREASE', description: 'Annual salary review', impact: 500 },
+      { type: 'EXPENSE_DECREASE', description: 'Reduced utility costs', impact: -200 }
+    ]
+  },
+  {
+    id: '2',
+    userId: '1',
+    period: '6_MONTHS',
+    forecastDate: new Date('2024-01-01'),
+    projectedIncome: 15000,
+    projectedExpenses: 10800,
+    projectedSavings: 4200,
+    confidence: 75,
+    factors: [
+      { type: 'INCOME_INCREASE', description: 'Promotion expected', impact: 1000 },
+      { type: 'EXPENSE_INCREASE', description: 'Home maintenance', impact: 300 }
+    ]
+  }
+];
+
+const spendingPatterns = [
+  {
+    id: '1',
+    userId: '1',
+    category: 'FOOD_AND_DINING',
+    currentMonth: 450,
+    previousMonth: 380,
+    trend: 'INCREASING',
+    percentageChange: 18.4,
+    averageMonthly: 415,
+    insights: ['Spending increased due to dining out more frequently', 'Consider meal planning to reduce costs']
+  },
+  {
+    id: '2',
+    userId: '1',
+    category: 'TRANSPORTATION',
+    currentMonth: 320,
+    previousMonth: 350,
+    trend: 'DECREASING',
+    percentageChange: -8.6,
+    averageMonthly: 335,
+    insights: ['Reduced fuel costs due to remote work', 'Public transport usage increased']
+  },
+  {
+    id: '3',
+    userId: '1',
+    category: 'ENTERTAINMENT',
+    currentMonth: 280,
+    previousMonth: 220,
+    trend: 'INCREASING',
+    percentageChange: 27.3,
+    averageMonthly: 250,
+    insights: ['Increased streaming subscriptions', 'More social activities']
+  }
+];
+
+const billReminders = [
+  {
+    id: '1',
+    userId: '1',
+    billName: 'Electricity Bill',
+    amount: 85.50,
+    dueDate: new Date('2024-02-15'),
+    category: 'UTILITIES',
+    priority: 'HIGH',
+    recurrence: 'MONTHLY',
+    status: 'PENDING',
+    isRecurring: true,
+    nextDueDate: new Date('2024-03-15'),
+    paymentSuggestions: [
+      {
+        method: 'AUTO_PAY',
+        description: 'Set up automatic payment',
+        benefits: ['Never miss a payment', 'Avoid late fees'],
+        setupTime: '5 minutes'
+      },
+      {
+        method: 'EARLY_PAYMENT',
+        description: 'Pay 5 days early',
+        benefits: ['Peace of mind', 'Buffer for processing time'],
+        setupTime: '2 minutes'
+      }
+    ]
+  },
+  {
+    id: '2',
+    userId: '1',
+    billName: 'Internet Service',
+    amount: 65.00,
+    dueDate: new Date('2024-02-20'),
+    category: 'UTILITIES',
+    priority: 'MEDIUM',
+    recurrence: 'MONTHLY',
+    status: 'PENDING',
+    isRecurring: true,
+    nextDueDate: new Date('2024-03-20'),
+    paymentSuggestions: [
+      {
+        method: 'AUTO_PAY',
+        description: 'Set up automatic payment',
+        benefits: ['Convenient', 'No late fees'],
+        setupTime: '5 minutes'
+      }
+    ]
+  },
+  {
+    id: '3',
+    userId: '1',
+    billName: 'Car Insurance',
+    amount: 120.00,
+    dueDate: new Date('2024-03-01'),
+    category: 'INSURANCE',
+    priority: 'HIGH',
+    recurrence: 'MONTHLY',
+    status: 'PENDING',
+    isRecurring: true,
+    nextDueDate: new Date('2024-04-01'),
+    paymentSuggestions: [
+      {
+        method: 'AUTO_PAY',
+        description: 'Set up automatic payment',
+        benefits: ['Required for coverage', 'Avoid policy cancellation'],
+        setupTime: '5 minutes'
+      }
+    ]
+  }
+];
+
+const financialInsights = [
+  {
+    id: '1',
+    userId: '1',
+    type: 'SPENDING_ALERT',
+    title: 'High Entertainment Spending',
+    description: 'Your entertainment spending is 27% higher than last month',
+    severity: 'WARNING',
+    category: 'ENTERTAINMENT',
+    actionable: true,
+    actionItems: ['Review streaming subscriptions', 'Set entertainment budget'],
+    createdAt: new Date('2024-01-15')
+  },
+  {
+    id: '2',
+    userId: '1',
+    type: 'SAVINGS_OPPORTUNITY',
+    title: 'Savings Potential Identified',
+    description: 'You could save $200/month by optimizing your utility bills',
+    severity: 'INFO',
+    category: 'UTILITIES',
+    actionable: true,
+    actionItems: ['Compare utility providers', 'Implement energy-saving measures'],
+    createdAt: new Date('2024-01-14')
+  },
+  {
+    id: '3',
+    userId: '1',
+    type: 'BILL_REMINDER',
+    title: 'Upcoming Bill Due',
+    description: 'Electricity bill of $85.50 due in 3 days',
+    severity: 'HIGH',
+    category: 'BILLS',
+    actionable: true,
+    actionItems: ['Schedule payment', 'Set up auto-pay'],
+    createdAt: new Date('2024-01-13')
+  }
+];
+
 const accounts = [
   {
     id: '1',
@@ -229,6 +408,284 @@ app.get('/api/notifications/unread/count', authenticateToken, (req, res) => {
   res.json({ count: 1 });
 });
 
+// ===== FINANCIAL ANALYSIS API ENDPOINTS =====
+
+// Cash Flow Forecasting
+app.get('/api/financial-analysis/cash-flow-forecast', authenticateToken, (req, res) => {
+  try {
+    const { period = '3_MONTHS' } = req.query;
+    const userForecasts = cashFlowForecasts.filter(f => f.userId === req.user.userId && f.period === period);
+    
+    if (userForecasts.length === 0) {
+      // Generate a new forecast if none exists
+      const newForecast = {
+        id: Date.now().toString(),
+        userId: req.user.userId,
+        period: period,
+        forecastDate: new Date(),
+        projectedIncome: Math.floor(Math.random() * 5000) + 5000,
+        projectedExpenses: Math.floor(Math.random() * 3000) + 4000,
+        projectedSavings: 0,
+        confidence: Math.floor(Math.random() * 30) + 70,
+        factors: [
+          { type: 'INCOME_INCREASE', description: 'Expected salary increase', impact: Math.floor(Math.random() * 500) + 200 },
+          { type: 'EXPENSE_DECREASE', description: 'Optimized spending', impact: -(Math.floor(Math.random() * 300) + 100) }
+        ]
+      };
+      newForecast.projectedSavings = newForecast.projectedIncome - newForecast.projectedExpenses;
+      cashFlowForecasts.push(newForecast);
+      res.json(newForecast);
+    } else {
+      res.json(userForecasts[0]);
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch cash flow forecast', error: error.message });
+  }
+});
+
+app.get('/api/financial-analysis/cash-flow-forecast/periods', authenticateToken, (req, res) => {
+  try {
+    const periods = [
+      { value: '1_MONTH', label: '1 Month', description: 'Short-term forecast' },
+      { value: '3_MONTHS', label: '3 Months', description: 'Quarterly forecast' },
+      { value: '6_MONTHS', label: '6 Months', description: 'Semi-annual forecast' },
+      { value: '12_MONTHS', label: '12 Months', description: 'Annual forecast' }
+    ];
+    res.json(periods);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch forecast periods', error: error.message });
+  }
+});
+
+// Spending Pattern Analysis
+app.get('/api/financial-analysis/spending-patterns', authenticateToken, (req, res) => {
+  try {
+    const userPatterns = spendingPatterns.filter(p => p.userId === req.user.userId);
+    res.json(userPatterns);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch spending patterns', error: error.message });
+  }
+});
+
+app.get('/api/financial-analysis/spending-patterns/categories', authenticateToken, (req, res) => {
+  try {
+    const categories = [
+      { value: 'FOOD_AND_DINING', label: 'Food & Dining', icon: 'utensils' },
+      { value: 'TRANSPORTATION', label: 'Transportation', icon: 'car' },
+      { value: 'ENTERTAINMENT', label: 'Entertainment', icon: 'film' },
+      { value: 'SHOPPING', label: 'Shopping', icon: 'shopping-bag' },
+      { value: 'UTILITIES', label: 'Utilities', icon: 'bolt' },
+      { value: 'HEALTHCARE', label: 'Healthcare', icon: 'heartbeat' },
+      { value: 'INSURANCE', label: 'Insurance', icon: 'shield-alt' },
+      { value: 'EDUCATION', label: 'Education', icon: 'graduation-cap' },
+      { value: 'TRAVEL', label: 'Travel', icon: 'plane' },
+      { value: 'OTHER', label: 'Other', icon: 'ellipsis-h' }
+    ];
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch spending categories', error: error.message });
+  }
+});
+
+// Bill Reminders
+app.get('/api/financial-analysis/bill-reminders', authenticateToken, (req, res) => {
+  try {
+    const userReminders = billReminders.filter(r => r.userId === req.user.userId);
+    res.json(userReminders);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch bill reminders', error: error.message });
+  }
+});
+
+app.post('/api/financial-analysis/bill-reminders', authenticateToken, (req, res) => {
+  try {
+    const { billName, amount, dueDate, category, priority, recurrence, isRecurring } = req.body;
+    
+    // Validate required fields
+    if (!billName || !amount || !dueDate || !category || !priority) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const newReminder = {
+      id: Date.now().toString(),
+      userId: req.user.userId,
+      billName,
+      amount: parseFloat(amount),
+      dueDate: new Date(dueDate),
+      category,
+      priority,
+      recurrence: recurrence || 'MONTHLY',
+      status: 'PENDING',
+      isRecurring: isRecurring || false,
+      nextDueDate: isRecurring ? new Date(new Date(dueDate).getTime() + 30 * 24 * 60 * 60 * 1000) : null,
+      paymentSuggestions: generatePaymentSuggestions(amount, category, priority),
+      createdAt: new Date()
+    };
+
+    billReminders.push(newReminder);
+    res.status(201).json(newReminder);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create bill reminder', error: error.message });
+  }
+});
+
+app.put('/api/financial-analysis/bill-reminders/:id', authenticateToken, (req, res) => {
+  try {
+    const { id } = req.params;
+    const reminderIndex = billReminders.findIndex(r => r.id === id && r.userId === req.user.userId);
+    
+    if (reminderIndex === -1) {
+      return res.status(404).json({ message: 'Bill reminder not found' });
+    }
+
+    const updatedReminder = { ...billReminders[reminderIndex], ...req.body };
+    billReminders[reminderIndex] = updatedReminder;
+    
+    res.json(updatedReminder);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update bill reminder', error: error.message });
+  }
+});
+
+app.delete('/api/financial-analysis/bill-reminders/:id', authenticateToken, (req, res) => {
+  try {
+    const { id } = req.params;
+    const reminderIndex = billReminders.findIndex(r => r.id === id && r.userId === req.user.userId);
+    
+    if (reminderIndex === -1) {
+      return res.status(404).json({ message: 'Bill reminder not found' });
+    }
+
+    billReminders.splice(reminderIndex, 1);
+    res.json({ message: 'Bill reminder deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete bill reminder', error: error.message });
+  }
+});
+
+app.get('/api/financial-analysis/bill-reminders/categories', authenticateToken, (req, res) => {
+  try {
+    const categories = [
+      { value: 'UTILITIES', label: 'Utilities', icon: 'bolt' },
+      { value: 'INSURANCE', label: 'Insurance', icon: 'shield-alt' },
+      { value: 'RENT', label: 'Rent/Mortgage', icon: 'home' },
+      { value: 'CREDIT_CARD', label: 'Credit Card', icon: 'credit-card' },
+      { value: 'LOAN', label: 'Loan Payment', icon: 'money-bill-wave' },
+      { value: 'SUBSCRIPTION', label: 'Subscription', icon: 'sync' },
+      { value: 'MEDICAL', label: 'Medical', icon: 'stethoscope' },
+      { value: 'OTHER', label: 'Other', icon: 'ellipsis-h' }
+    ];
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch bill categories', error: error.message });
+  }
+});
+
+app.get('/api/financial-analysis/bill-reminders/priorities', authenticateToken, (req, res) => {
+  try {
+    const priorities = [
+      { value: 'LOW', label: 'Low', color: 'success' },
+      { value: 'MEDIUM', label: 'Medium', color: 'warning' },
+      { value: 'HIGH', label: 'High', color: 'danger' },
+      { value: 'CRITICAL', label: 'Critical', color: 'dark' }
+    ];
+    res.json(priorities);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch priority levels', error: error.message });
+  }
+});
+
+// Financial Insights
+app.get('/api/financial-analysis/insights', authenticateToken, (req, res) => {
+  try {
+    const userInsights = financialInsights.filter(i => i.userId === req.user.userId);
+    res.json(userInsights);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch financial insights', error: error.message });
+  }
+});
+
+app.get('/api/financial-analysis/insights/types', authenticateToken, (req, res) => {
+  try {
+    const types = [
+      { value: 'SPENDING_ALERT', label: 'Spending Alert', icon: 'exclamation-triangle' },
+      { value: 'SAVINGS_OPPORTUNITY', label: 'Savings Opportunity', icon: 'piggy-bank' },
+      { value: 'BILL_REMINDER', label: 'Bill Reminder', icon: 'calendar-alt' },
+      { value: 'BUDGET_ALERT', label: 'Budget Alert', icon: 'chart-pie' },
+      { value: 'INVESTMENT_OPPORTUNITY', label: 'Investment Opportunity', icon: 'chart-line' }
+    ];
+    res.json(types);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch insight types', error: error.message });
+  }
+});
+
+// Dashboard Summary
+app.get('/api/financial-analysis/dashboard-summary', authenticateToken, (req, res) => {
+  try {
+    const userReminders = billReminders.filter(r => r.userId === req.user.userId);
+    const userInsights = financialInsights.filter(i => i.userId === req.user.userId);
+    const userPatterns = spendingPatterns.filter(p => p.userId === req.user.userId);
+
+    const summary = {
+      totalBills: userReminders.length,
+      upcomingBills: userReminders.filter(r => {
+        const daysUntilDue = Math.ceil((new Date(r.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+        return daysUntilDue <= 7 && daysUntilDue > 0;
+      }).length,
+      totalInsights: userInsights.length,
+      unreadInsights: userInsights.filter(i => !i.isRead).length,
+      spendingTrends: userPatterns.map(p => ({
+        category: p.category,
+        trend: p.trend,
+        percentageChange: p.percentageChange
+      })),
+      recentInsights: userInsights.slice(0, 3)
+    };
+
+    res.json(summary);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch dashboard summary', error: error.message });
+  }
+});
+
+// Helper function to generate payment suggestions
+function generatePaymentSuggestions(amount, category, priority) {
+  const suggestions = [];
+  
+  // Auto-pay suggestion for recurring bills
+  if (category === 'UTILITIES' || category === 'INSURANCE' || category === 'RENT') {
+    suggestions.push({
+      method: 'AUTO_PAY',
+      description: 'Set up automatic payment',
+      benefits: ['Never miss a payment', 'Avoid late fees'],
+      setupTime: '5 minutes'
+    });
+  }
+
+  // Early payment suggestion for high priority bills
+  if (priority === 'HIGH' || priority === 'CRITICAL') {
+    suggestions.push({
+      method: 'EARLY_PAYMENT',
+      description: 'Pay 3-5 days early',
+      benefits: ['Peace of mind', 'Buffer for processing time'],
+      setupTime: '2 minutes'
+    });
+  }
+
+  // Payment plan suggestion for large amounts
+  if (amount > 200) {
+    suggestions.push({
+      method: 'PAYMENT_PLAN',
+      description: 'Consider payment plan',
+      benefits: ['Spread cost over time', 'Reduce monthly burden'],
+      setupTime: '10 minutes'
+    });
+  }
+
+  return suggestions;
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -243,6 +700,13 @@ app.listen(PORT, () => {
   console.log(`\n💡 Demo credentials:`);
   console.log(`   Username: demo`);
   console.log(`   Password: password`);
+  console.log(`\n📈 Financial Analysis API Endpoints:`);
+  console.log(`   GET  /api/financial-analysis/cash-flow-forecast`);
+  console.log(`   GET  /api/financial-analysis/spending-patterns`);
+  console.log(`   GET  /api/financial-analysis/bill-reminders`);
+  console.log(`   POST /api/financial-analysis/bill-reminders`);
+  console.log(`   GET  /api/financial-analysis/insights`);
+  console.log(`   GET  /api/financial-analysis/dashboard-summary`);
 });
 
 //// Personalized financial advice and insights
@@ -309,4 +773,93 @@ app.post('/api/financial-advice', (req, res) => {
   res.json({ advice, insights });
 });
 
-module.exports = router;
+/*
+================================================================================
+FINANCIAL ANALYSIS API - FEATURE SUMMARY
+================================================================================
+
+This server has been extended with comprehensive financial analysis features
+to support the banking application's advanced financial management capabilities.
+
+NEW FEATURES ADDED:
+==================
+
+1. CASH FLOW FORECASTING
+   - Endpoint: GET /api/financial-analysis/cash-flow-forecast
+   - Endpoint: GET /api/financial-analysis/cash-flow-forecast/periods
+   - Features: 3-month and 6-month projections, confidence scoring, impact factors
+   - Data: Projected income, expenses, savings with trend analysis
+
+2. SPENDING PATTERN ANALYSIS
+   - Endpoint: GET /api/financial-analysis/spending-patterns
+   - Endpoint: GET /api/financial-analysis/spending-patterns/categories
+   - Features: Category-wise spending analysis, trend detection, percentage changes
+   - Data: Monthly comparisons, insights, average spending patterns
+
+3. BILL DUE DATE REMINDERS WITH PAYMENT SUGGESTIONS
+   - Endpoint: GET /api/financial-analysis/bill-reminders
+   - Endpoint: POST /api/financial-analysis/bill-reminders
+   - Endpoint: PUT /api/financial-analysis/bill-reminders/:id
+   - Endpoint: DELETE /api/financial-analysis/bill-reminders/:id
+   - Endpoint: GET /api/financial-analysis/bill-reminders/categories
+   - Endpoint: GET /api/financial-analysis/bill-reminders/priorities
+   - Features: CRUD operations, payment suggestions, priority management
+   - Data: Due dates, amounts, categories, payment methods, reminders
+
+4. FINANCIAL INSIGHTS
+   - Endpoint: GET /api/financial-analysis/insights
+   - Endpoint: GET /api/financial-analysis/insights/types
+   - Features: Personalized financial advice, spending recommendations
+   - Data: Insight types, descriptions, actionable recommendations
+
+5. DASHBOARD SUMMARY
+   - Endpoint: GET /api/financial-analysis/dashboard-summary
+   - Features: Overview of all financial analysis data
+   - Data: Quick stats, recent activities, upcoming reminders
+
+MOCK DATA STRUCTURES:
+====================
+
+1. cashFlowForecasts: Array of forecast objects with period, projections, confidence
+2. spendingPatterns: Array of spending analysis with categories, trends, insights
+3. billReminders: Array of bill reminder objects with CRUD capabilities
+4. financialInsights: Array of insight objects with types and recommendations
+
+HELPER FUNCTIONS:
+=================
+
+1. generatePaymentSuggestions(amount, category, priority)
+   - Generates contextual payment suggestions based on bill characteristics
+   - Returns array of payment methods with benefits and setup times
+
+AUTHENTICATION:
+===============
+
+All financial analysis endpoints require JWT authentication via the
+authenticateToken middleware. Include the token in the Authorization header:
+Authorization: Bearer <jwt_token>
+
+USAGE EXAMPLE:
+==============
+
+1. Login to get JWT token:
+   POST /api/auth/login
+   Body: {"username": "demo", "password": "password"}
+
+2. Use token for financial analysis:
+   GET /api/financial-analysis/cash-flow-forecast
+   Headers: Authorization: Bearer <token>
+
+FRONTEND INTEGRATION:
+====================
+
+These endpoints are consumed by the Angular FinancialAnalysisService
+in the frontend application, providing a complete financial analysis
+experience with real-time data and interactive features.
+
+================================================================================
+END OF FINANCIAL ANALYSIS API SUMMARY
+================================================================================
+*/
+
+
