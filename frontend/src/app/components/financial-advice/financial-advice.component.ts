@@ -1,4 +1,6 @@
+// frontend/src/app/components/financial-advice/financial-advice.component.ts
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FinancialAdviceService, FinancialAdviceRequest, FinancialAdviceResponse } from '../../services/financial-advice.service';
 
 @Component({
@@ -7,21 +9,37 @@ import { FinancialAdviceService, FinancialAdviceRequest, FinancialAdviceResponse
   styleUrls: ['./financial-advice.component.css']
 })
 export class FinancialAdviceComponent implements OnInit {
-  salary = 0;
-  expenses = 0;
-  futureGoal = '';
-  response?: FinancialAdviceResponse;
+  adviceForm: FormGroup;
+  adviceResponse: FinancialAdviceResponse | null = null;
 
-  constructor(private adviceService: FinancialAdviceService) {}
+  constructor(
+    private fb: FormBuilder,
+    private adviceService: FinancialAdviceService
+  ) {
+    this.adviceForm = this.fb.group({
+      salary: [0, Validators.required],
+      expenses: this.fb.group({
+        housing: [0, Validators.min(0)],
+        groceries: [0, Validators.min(0)],
+        transportation: [0, Validators.min(0)],
+        utilities: [0, Validators.min(0)],
+        entertainment: [0, Validators.min(0)],
+        savings: [0, Validators.min(0)],
+        other: [0, Validators.min(0)]
+      }),
+      futureGoal: ['']
+    });
+  }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Optional initialization logic
+  }
 
-  submit() {
-    const req: FinancialAdviceRequest = {
-        salary: this.salary,
-        expenses: this.expenses,
-        futureGoal: this.futureGoal
-    };
-    this.adviceService.getAdvice(req).subscribe((res: FinancialAdviceResponse) => this.response = res);
+  onSubmit() {
+    if (this.adviceForm.valid) {
+      this.adviceService.getAdvice(this.adviceForm.value).subscribe((response: FinancialAdviceResponse) => {
+        this.adviceResponse = response;
+      });
+    }
   }
 }

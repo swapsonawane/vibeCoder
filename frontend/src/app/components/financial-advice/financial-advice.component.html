@@ -1,32 +1,53 @@
-<form (ngSubmit)="submit()" class="financial-advice__form">
-    <div class="financial-advice__field">
-        <label for="salary">Salary</label>
-        <input [(ngModel)]="salary" name="salary" id="salary" type="number" required />
+<!-- frontend/src/app/components/financial-advice/financial-advice.component.html -->
+<div class="financial-advice-container">
+    <form [formGroup]="adviceForm" (ngSubmit)="onSubmit()" class="financial-form">
+        <h2 class="form-title">Financial Advice</h2>
+
+        <div class="form-group">
+            <label for="salary">Salary</label>
+            <input type="number" id="salary" formControlName="salary" class="form-control" required>
+        </div>
+
+        <h3>Expenses</h3>
+        <div class="expense-grid">
+            <div class="form-group" *ngFor="let category of ['housing', 'groceries', 'transportation', 'utilities', 'entertainment', 'savings', 'other']">
+                <label [for]="category">{{ category | titlecase }}</label>
+                <label>
+                    <input type="number" [id]="category" [formControlName]="'expenses.' + category" class="form-control">
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="futureGoal">Future Goal</label>
+            <input type="text" id="futureGoal" formControlName="futureGoal" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Get Advice</button>
+    </form>
+
+    <div *ngIf="adviceResponse" class="advice-results">
+        <div class="card">
+            <div class="card-header">
+                <h3>Advice</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li *ngFor="let item of adviceResponse.advice">{{ item }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Insights</h3>
+            </div>
+            <div class="card-body">
+                <div *ngFor="let insight of adviceResponse.insights" class="insight-item">
+                    <h4>{{ insight.title }}</h4>
+                    <p>{{ insight.detail }}</p>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="financial-advice__field">
-        <label for="expenses">Expenses</label>
-        <input [(ngModel)]="expenses" name="expenses" id="expenses" type="number" required />
-    </div>
-
-    <div class="financial-advice__field">
-        <label for="futureGoal">Future Goal</label>
-        <input [(ngModel)]="futureGoal" name="futureGoal" id="futureGoal" />
-    </div>
-
-    <button type="submit" class="financial-advice__submit-btn">Get Advice</button>
-</form>
-
-<div *ngIf="response" class="financial-advice__response">
-    <h3>Advice</h3>
-    <ul>
-        <li *ngFor="let a of response.advice">{{ a }}</li>
-    </ul>
-
-    <h3>Insights</h3>
-    <ul>
-        <li *ngFor="let i of response.insights">
-            <strong>{{ i.title }}</strong>: {{ i.detail }}
-        </li>
-    </ul>
 </div>

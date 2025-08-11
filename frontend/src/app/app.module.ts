@@ -38,6 +38,7 @@ import { BeneficiaryService } from './services/beneficiary.service';
 import { AiChatService } from './services/ai-chat.service';
 import { PdfStatementService } from './services/pdf-statement.service';
 import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
+import { FinancialAdviceService } from './services/financial-advice.service';
 
 @NgModule({
   declarations: [
@@ -74,7 +75,8 @@ import { FinancialAdviceComponent } from './components/financial-advice/financia
     NotificationService,
     BeneficiaryService,
     AiChatService,
-    PdfStatementService
+    PdfStatementService,
+    FinancialAdviceService
   ],
   bootstrap: [AppComponent]
 })

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const router = express.Router();
 
 const app = express();
 const PORT = 8080;
@@ -228,27 +229,6 @@ app.get('/api/notifications/unread/count', authenticateToken, (req, res) => {
   res.json({ count: 1 });
 });
 
-app.post('/api/financial-advice', (req, res) => {
-  const { salary, expenses, futureGoal } = req.body;
-  let advice = [];
-  let insights = [];
-
-  if (salary > expenses) {
-    advice.push('You are saving money each month. Consider investing the surplus.');
-    insights.push({ title: 'Savings Rate', detail: `You save $${salary - expenses} per month.` });
-  } else {
-    advice.push('Your expenses exceed your salary. Review your spending and create a budget.');
-    insights.push({ title: 'Deficit', detail: `You are overspending by $${expenses - salary} per month.` });
-  }
-
-  if (futureGoal) {
-    advice.push(`To achieve your goal "${futureGoal}", estimate the total cost and set a monthly savings target. Track your progress regularly.`);
-    insights.push({ title: 'Goal Planning', detail: `Future goal: ${futureGoal}` });
-  }
-
-  res.json({ advice, insights });
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -263,4 +243,70 @@ app.listen(PORT, () => {
   console.log(`\n💡 Demo credentials:`);
   console.log(`   Username: demo`);
   console.log(`   Password: password`);
-}); 
+});
+
+//// Personalized financial advice and insights
+//   Expense categorization and budgeting recommendations
+const BUDGET_GUIDELINES = {
+  housing: 30,
+  groceries: 10,
+  transportation: 15,
+  utilities: 10,
+  entertainment: 5,
+  savings: 20
+};
+
+app.post('/api/financial-advice', (req, res) => {
+  const { salary, expenses, futureGoal } = req.body;
+
+  // Validate salary is a number and > 0
+  if (typeof salary !== 'number' || salary <= 0) {
+    return res.status(400).json({ message: 'Invalid salary value' });
+  }
+
+  // Validate expenses is an object with numeric values
+  if (typeof expenses !== 'object' || !expenses) {
+    return res.status(400).json({ message: 'Invalid expenses structure' });
+  }
+
+  // Calculate total expenses
+  const totalExpenses = Object.values(expenses).reduce((sum, val) => sum + val, 0);
+  const surplus = salary - totalExpenses;
+
+  // Generate budget insights
+  const insights = [];
+  for (const [category, recommendedPct] of Object.entries(BUDGET_GUIDELINES)) {
+    const expenseValue = expenses[category];
+    if (typeof expenseValue !== 'number') continue;
+
+    const actualPct = (expenseValue / salary) * 100;
+    const difference = actualPct - recommendedPct;
+    if (Math.abs(difference) > 5) {
+      insights.push({
+        title: `${category.charAt(0).toUpperCase() + category.slice(1)} Spending`,
+        detail: `You're spending ${actualPct.toFixed(1)}% on ${category}, which is ${difference.toFixed(1)}% ${difference > 0 ? 'above' : 'below'} the recommended ${recommendedPct}%.`
+      });
+    }
+  }
+
+  // Generate advice
+  const advice = [];
+  if (surplus > 0) {
+    advice.push(`You have a monthly surplus of $${surplus.toFixed(2)}. Consider increasing savings or investing.`);
+  } else {
+    advice.push(`Your expenses exceed your salary by $${Math.abs(surplus).toFixed(2)}. Review your budget.`);
+  }
+
+  if (futureGoal) {
+    advice.push(`To achieve your goal of "${futureGoal}", prioritize saving at least 20% of your income.`);
+  }
+
+  // Add category-specific advice
+  if (expenses.housing / salary * 100 > 35) {
+    advice.push('Consider downsizing your housing costs to improve financial flexibility.');
+  }
+
+  res.json({ advice, insights });
+});
+
+module.exports = router;
