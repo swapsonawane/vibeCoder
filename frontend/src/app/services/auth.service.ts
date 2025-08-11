@@ -28,46 +28,15 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    // For demo purposes, simulate login without real API call
-    return new Observable<LoginResponse>(observer => {
-      setTimeout(() => {
-        if (credentials.username === 'demo' && credentials.password === 'password') {
-          const mockUser: User = {
-            id: '1',
-            username: 'demo',
-            email: 'demo@netbanking.com',
-            firstName: 'John',
-            lastName: 'Doe',
-            phoneNumber: '+1234567890',
-            address: '123 Main Street',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            dateOfBirth: '1990-01-15',
-            occupation: 'Software Developer',
-            isActive: true,
-            createdAt: new Date(),
-            lastLoginAt: new Date()
-          };
-
-          const mockResponse: LoginResponse = {
-            token: 'demo-jwt-token-' + Date.now(),
-            user: mockUser,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-          };
-
-          this.setToken(mockResponse.token);
-          this.setCurrentUser(mockResponse.user);
+    return this.http.post<LoginResponse>('http://localhost:8080/api/auth/login', credentials)
+      .pipe(
+        tap((response: LoginResponse) => {
+          this.setToken(response.token);
+          this.setCurrentUser(response.user);
           this.isAuthenticatedSubject.next(true);
-          this.currentUserSubject.next(mockResponse.user);
-
-          observer.next(mockResponse);
-          observer.complete();
-        } else {
-          observer.error({ message: 'Invalid credentials' });
-        }
-      }, 1000);
-    });
+          this.currentUserSubject.next(response.user);
+        })
+      );
   }
 
   logout(): void {

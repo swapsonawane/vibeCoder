@@ -188,8 +188,6 @@ export class NotificationService {
     if ('Notification' in window && Notification.permission === 'granted') {
       const browserNotification = new Notification(notification.title, {
         body: notification.message,
-        icon: '/assets/icons/notification-icon.png',
-        badge: '/assets/icons/badge-icon.png',
         tag: notification.id
       });
 
@@ -216,5 +214,70 @@ export class NotificationService {
       return Notification.requestPermission();
     }
     return Promise.resolve('denied');
+  }
+
+  // Toast notification methods for user feedback
+  showSuccess(message: string, title: string = 'Success'): void {
+    const notification: Notification = {
+      id: this.generateId(),
+      title,
+      message,
+      type: NotificationType.SUCCESS,
+      priority: NotificationPriority.MEDIUM,
+      isRead: false,
+      createdAt: new Date(),
+      userId: this.authService.getCurrentUser()?.id || 'anonymous'
+    };
+    
+    this.handleRealTimeNotification(notification);
+  }
+
+  showError(message: string, title: string = 'Error'): void {
+    const notification: Notification = {
+      id: this.generateId(),
+      title,
+      message,
+      type: NotificationType.ERROR,
+      priority: NotificationPriority.HIGH,
+      isRead: false,
+      createdAt: new Date(),
+      userId: this.authService.getCurrentUser()?.id || 'anonymous'
+    };
+    
+    this.handleRealTimeNotification(notification);
+  }
+
+  showInfo(message: string, title: string = 'Info'): void {
+    const notification: Notification = {
+      id: this.generateId(),
+      title,
+      message,
+      type: NotificationType.INFO,
+      priority: NotificationPriority.LOW,
+      isRead: false,
+      createdAt: new Date(),
+      userId: this.authService.getCurrentUser()?.id || 'anonymous'
+    };
+    
+    this.handleRealTimeNotification(notification);
+  }
+
+  showWarning(message: string, title: string = 'Warning'): void {
+    const notification: Notification = {
+      id: this.generateId(),
+      title,
+      message,
+      type: NotificationType.WARNING,
+      priority: NotificationPriority.MEDIUM,
+      isRead: false,
+      createdAt: new Date(),
+      userId: this.authService.getCurrentUser()?.id || 'anonymous'
+    };
+    
+    this.handleRealTimeNotification(notification);
+  }
+
+  private generateId(): string {
+    return 'notif_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
   }
 } 
