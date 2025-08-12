@@ -384,13 +384,28 @@ app.get('/api/wallet/transactions', authenticateToken, (req, res) => {
 app.post('/api/wallet/topup', authenticateToken, (req, res) => {
   const { amount, sourceAccountId } = req.body;
   const wallet = wallets.find(w => w.userId === req.user.id);
+  const sourceAccount = accounts.find(a => a.id === sourceAccountId && a.userId === req.user.id);
   
   if (!wallet) {
     return res.status(404).json({ message: 'Wallet not found' });
   }
+  
+  if (!sourceAccount) {
+    return res.status(404).json({ message: 'Source account not found' });
+  }
+  
+  if (sourceAccount.balance < amount) {
+    return res.status(400).json({ message: 'Insufficient funds in source account' });
+  }
 
+  // Update balances
+  sourceAccount.balance -= amount;
+  sourceAccount.availableBalance -= amount;
   wallet.balance += amount;
   wallet.lastTransactionAt = new Date();
+
+  console.log(`Top up: Deducted ${amount} from account ${sourceAccountId}, new balance: ${sourceAccount.balance}`);
+  console.log(`Top up: Added ${amount} to wallet, new balance: ${wallet.balance}`);
 
   const transaction = {
     id: `wtxn_${Date.now()}`,
@@ -398,13 +413,86 @@ app.post('/api/wallet/topup', authenticateToken, (req, res) => {
     transactionType: 'CREDIT',
     amount,
     currency: 'USD',
-    description: `Top up from account ${sourceAccountId}`,
+    description: `Top up from account ${sourceAccount.accountNumber}`,
     status: 'COMPLETED',
     transactionDate: new Date(),
     referenceNumber: `WTF${Date.now()}`
   };
   
   walletTransactions.unshift(transaction);
+  
+  // Add corresponding bank account transaction
+  if (!sourceAccount.transactions) {
+    sourceAccount.transactions = [];
+  }
+  sourceAccount.transactions.unshift({
+    id: `txn_${Date.now()}`,
+    accountId: sourceAccount.id,
+    type: 'DEBIT',
+    amount: amount,
+    description: 'Digital Wallet Top Up',
+    date: new Date(),
+    balance: sourceAccount.balance,
+    category: 'Transfer'
+  });
+  res.json(transaction);
+});
+
+// Withdraw from wallet
+app.post('/api/wallet/withdraw', authenticateToken, (req, res) => {
+  const { amount, destinationAccountId } = req.body;
+  const wallet = wallets.find(w => w.userId === req.user.id);
+  const destinationAccount = accounts.find(a => a.id === destinationAccountId && a.userId === req.user.id);
+  
+  if (!wallet) {
+    return res.status(404).json({ message: 'Wallet not found' });
+  }
+  
+  if (!destinationAccount) {
+    return res.status(404).json({ message: 'Destination account not found' });
+  }
+  
+  if (wallet.balance < amount) {
+    return res.status(400).json({ message: 'Insufficient funds in wallet' });
+  }
+
+  // Update balances
+  wallet.balance -= amount;
+  wallet.lastTransactionAt = new Date();
+  destinationAccount.balance += amount;
+  destinationAccount.availableBalance += amount;
+
+  console.log(`Withdraw: Deducted ${amount} from wallet, new balance: ${wallet.balance}`);
+  console.log(`Withdraw: Added ${amount} to account ${destinationAccountId}, new balance: ${destinationAccount.balance}`);
+
+  const transaction = {
+    id: `wtxn_${Date.now()}`,
+    walletId: wallet.id,
+    transactionType: 'DEBIT',
+    amount,
+    currency: 'USD',
+    description: `Withdraw to account ${destinationAccount.accountNumber}`,
+    status: 'COMPLETED',
+    transactionDate: new Date(),
+    referenceNumber: `WTF${Date.now()}`
+  };
+  
+  walletTransactions.unshift(transaction);
+  
+  // Add corresponding bank account transaction
+  if (!destinationAccount.transactions) {
+    destinationAccount.transactions = [];
+  }
+  destinationAccount.transactions.unshift({
+    id: `txn_${Date.now() + 1}`, // Slightly different timestamp
+    accountId: destinationAccount.id,
+    type: 'CREDIT',
+    amount: amount,
+    description: 'Digital Wallet Withdrawal',
+    date: new Date(),
+    balance: destinationAccount.balance,
+    category: 'Transfer'
+  });
   res.json(transaction);
 });
 
@@ -443,7 +531,14 @@ app.post('/api/wallet/send', authenticateToken, (req, res) => {
 
 // Get crypto holdings
 app.get('/api/wallet/crypto/holdings', authenticateToken, (req, res) => {
-  res.json(cryptoHoldings);
+  const wallet = wallets.find(w => w.userId === req.user.id);
+  if (!wallet) {
+    return res.status(404).json({ message: 'Wallet not found' });
+  }
+  
+  const userHoldings = cryptoHoldings.filter(h => h.walletId === wallet.id);
+  console.log(`Fetching crypto holdings for user ${req.user.id}, found ${userHoldings.length} holdings`);
+  res.json(userHoldings);
 });
 
 // Get available cryptos
@@ -486,17 +581,22 @@ app.post('/api/wallet/crypto/buy', authenticateToken, (req, res) => {
     referenceNumber: `CTF${Date.now()}`
   };
 
-  // Update or create holding
-  let holding = cryptoHoldings.find(h => h.symbol === symbol);
+  // Update or create holding (filter by user)
+  let holding = cryptoHoldings.find(h => h.symbol === symbol && h.walletId === wallet.id);
   if (holding) {
-    const totalValue = holding.quantity * holding.averageBuyPrice + amount;
+    const previousTotalCost = holding.quantity * holding.averageBuyPrice;
+    const newTotalCost = previousTotalCost + amount;
     holding.quantity += quantity;
-    holding.averageBuyPrice = totalValue / holding.quantity;
+    holding.averageBuyPrice = newTotalCost / holding.quantity;
+    holding.currentPrice = crypto.price;
     holding.totalValue = holding.quantity * crypto.price;
-    holding.profitLoss = holding.totalValue - (holding.quantity * holding.averageBuyPrice);
-    holding.profitLossPercentage = (holding.profitLoss / (holding.quantity * holding.averageBuyPrice)) * 100;
+    holding.profitLoss = holding.totalValue - newTotalCost;
+    holding.profitLossPercentage = (holding.profitLoss / newTotalCost) * 100;
+    holding.lastUpdated = new Date();
+    
+    console.log(`Updated crypto holding: ${symbol}, quantity: ${holding.quantity}, avg price: ${holding.averageBuyPrice}`);
   } else {
-    cryptoHoldings.push({
+    const newHolding = {
       id: `crypto_${Date.now()}`,
       walletId: wallet.id,
       symbol,
@@ -508,8 +608,110 @@ app.post('/api/wallet/crypto/buy', authenticateToken, (req, res) => {
       profitLoss: 0,
       profitLossPercentage: 0,
       lastUpdated: new Date()
-    });
+    };
+    cryptoHoldings.push(newHolding);
+    
+    console.log(`Created new crypto holding: ${symbol}, quantity: ${quantity}, price: ${crypto.price}`);
   }
+
+  // Add wallet transaction for crypto purchase
+  const walletTransaction = {
+    id: `wtxn_${Date.now() + 1}`,
+    walletId: wallet.id,
+    transactionType: 'CRYPTO_BUY',
+    amount,
+    currency: 'USD',
+    description: `Bought ${quantity.toFixed(6)} ${symbol}`,
+    cryptoSymbol: symbol,
+    status: 'COMPLETED',
+    transactionDate: new Date(),
+    referenceNumber: `WCB${Date.now()}`
+  };
+  
+  walletTransactions.unshift(walletTransaction);
+
+  console.log(`Crypto buy completed: ${amount} USD for ${quantity} ${symbol}, wallet balance: ${wallet.balance}`);
+
+  res.json(transaction);
+});
+
+// Sell crypto
+app.post('/api/wallet/crypto/sell', authenticateToken, (req, res) => {
+  const { symbol, quantity } = req.body;
+  const wallet = wallets.find(w => w.userId === req.user.id);
+  
+  if (!wallet) {
+    return res.status(404).json({ message: 'Wallet not found' });
+  }
+
+  const crypto = availableCryptos.find(c => c.symbol === symbol);
+  if (!crypto) {
+    return res.status(404).json({ message: 'Cryptocurrency not found' });
+  }
+
+  const holding = cryptoHoldings.find(h => h.symbol === symbol && h.walletId === wallet.id);
+  if (!holding) {
+    return res.status(404).json({ message: 'No holdings found for this cryptocurrency' });
+  }
+
+  if (holding.quantity < quantity) {
+    return res.status(400).json({ message: 'Insufficient cryptocurrency holdings' });
+  }
+
+  const saleAmount = quantity * crypto.price;
+  const fees = saleAmount * 0.01; // 1% fee
+  const netAmount = saleAmount - fees;
+
+  // Update wallet balance
+  wallet.balance += netAmount;
+  wallet.lastTransactionAt = new Date();
+
+  // Update or remove holding
+  holding.quantity -= quantity;
+  if (holding.quantity <= 0) {
+    const index = cryptoHoldings.indexOf(holding);
+    cryptoHoldings.splice(index, 1);
+    console.log(`Removed crypto holding: ${symbol} (sold all)`);
+  } else {
+    holding.totalValue = holding.quantity * crypto.price;
+    holding.profitLoss = holding.totalValue - (holding.quantity * holding.averageBuyPrice);
+    holding.profitLossPercentage = (holding.profitLoss / (holding.quantity * holding.averageBuyPrice)) * 100;
+    holding.lastUpdated = new Date();
+    console.log(`Updated crypto holding: ${symbol}, remaining quantity: ${holding.quantity}`);
+  }
+
+  const transaction = {
+    id: `ctxn_${Date.now()}`,
+    walletId: wallet.id,
+    symbol,
+    type: 'SELL',
+    quantity,
+    pricePerUnit: crypto.price,
+    totalAmount: saleAmount,
+    fees,
+    netAmount,
+    status: 'COMPLETED',
+    transactionDate: new Date(),
+    referenceNumber: `CTS${Date.now()}`
+  };
+
+  // Add wallet transaction for crypto sale
+  const walletTransaction = {
+    id: `wtxn_${Date.now() + 1}`,
+    walletId: wallet.id,
+    transactionType: 'CRYPTO_SELL',
+    amount: netAmount,
+    currency: 'USD',
+    description: `Sold ${quantity} ${symbol}`,
+    cryptoSymbol: symbol,
+    status: 'COMPLETED',
+    transactionDate: new Date(),
+    referenceNumber: `WCS${Date.now()}`
+  };
+  
+  walletTransactions.unshift(walletTransaction);
+
+  console.log(`Crypto sell completed: ${quantity} ${symbol} for ${netAmount} USD, wallet balance: ${wallet.balance}`);
 
   res.json(transaction);
 });

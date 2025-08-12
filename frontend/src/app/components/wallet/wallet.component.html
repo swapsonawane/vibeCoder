@@ -1,0 +1,652 @@
+<!-- Digital Wallet Container -->
+<div class="wallet-container">
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading your digital wallet...</p>
+  </div>
+
+  <!-- Wallet Content -->
+  <div *ngIf="!isLoading && wallet">
+    <!-- Wallet Header -->
+    <div class="wallet-header mb-4">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h2 class="mb-0">
+            <i class="fas fa-wallet me-2 text-primary"></i>
+            Digital Wallet
+          </h2>
+          <p class="text-muted mb-0">Wallet ID: {{wallet.walletNumber}}</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <button class="btn btn-primary me-2" (click)="openTopUpModal()">
+            <i class="fas fa-plus me-1"></i> Top Up
+          </button>
+          <button class="btn btn-outline-primary" (click)="openWithdrawModal()">
+            <i class="fas fa-minus me-1"></i> Withdraw
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance Card -->
+    <div class="balance-card mb-4">
+      <div class="card gradient-card">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <h3 class="text-white mb-1">Available Balance</h3>
+              <h1 class="text-white mb-0">{{formatCurrency(wallet.balance)}}</h1>
+              <small class="text-white-50">Last updated: {{formatDate(wallet.lastTransactionAt || wallet.createdAt)}}</small>
+            </div>
+            <div class="col-md-6 text-end">
+              <div class="quick-actions">
+                <button class="btn btn-light btn-sm me-2" (click)="openSendModal()">
+                  <i class="fas fa-paper-plane me-1"></i> Send
+                </button>
+                <button class="btn btn-light btn-sm" (click)="openQRModal()">
+                  <i class="fas fa-qrcode me-1"></i> QR Code
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats mb-4" *ngIf="walletSummary">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card stat-card">
+            <div class="card-body text-center">
+              <i class="fas fa-chart-line text-success fs-2 mb-2"></i>
+              <h5>Monthly Spending</h5>
+              <h4 class="text-success">{{formatCurrency(walletSummary.monthlySpending)}}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stat-card">
+            <div class="card-body text-center">
+              <i class="fas fa-clock text-warning fs-2 mb-2"></i>
+              <h5>Pending</h5>
+              <h4 class="text-warning">{{walletSummary.pendingTransactions}}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stat-card">
+            <div class="card-body text-center">
+              <i class="fab fa-bitcoin text-primary fs-2 mb-2"></i>
+              <h5>Crypto Value</h5>
+              <h4 class="text-primary">{{formatCurrency(walletSummary.cryptoPortfolioValue)}}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stat-card">
+            <div class="card-body text-center">
+              <i class="fas fa-trending-up fs-2 mb-2" [class.text-success]="walletSummary.totalProfitLoss >= 0" [class.text-danger]="walletSummary.totalProfitLoss < 0"></i>
+              <h5>P&L</h5>
+              <h4 [class.text-success]="walletSummary.totalProfitLoss >= 0" [class.text-danger]="walletSummary.totalProfitLoss < 0">
+                {{formatCurrency(walletSummary.totalProfitLoss)}}
+              </h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+          <i class="fas fa-chart-pie me-1"></i> Overview
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 'transactions'" (click)="setActiveTab('transactions')">
+          <i class="fas fa-list me-1"></i> Transactions
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 'qr-codes'" (click)="setActiveTab('qr-codes')">
+          <i class="fas fa-qrcode me-1"></i> QR Codes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 'crypto'" (click)="setActiveTab('crypto')">
+          <i class="fab fa-bitcoin me-1"></i> Crypto Portfolio
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Overview Tab -->
+      <div *ngIf="activeTab === 'overview'" class="tab-pane fade show active">
+        <div class="row">
+          <!-- Recent Transactions -->
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Transactions</h5>
+                <button class="btn btn-sm btn-outline-primary" (click)="setActiveTab('transactions')">
+                  View All
+                </button>
+              </div>
+              <div class="card-body">
+                <div *ngIf="recentTransactions.length === 0" class="text-center py-4">
+                  <i class="fas fa-receipt text-muted fs-1"></i>
+                  <p class="text-muted mt-2">No transactions yet</p>
+                </div>
+                <div *ngFor="let transaction of recentTransactions" class="transaction-item">
+                  <div class="d-flex justify-content-between align-items-center py-2">
+                    <div class="d-flex align-items-center">
+                      <i [class]="getTransactionIcon(transaction.transactionType)" class="me-3"></i>
+                      <div>
+                        <h6 class="mb-0">{{transaction.description}}</h6>
+                        <small class="text-muted">{{formatDate(transaction.transactionDate)}}</small>
+                      </div>
+                    </div>
+                    <div class="text-end">
+                      <span class="fw-bold" 
+                            [class.text-success]="transaction.transactionType === 'CREDIT'"
+                            [class.text-danger]="transaction.transactionType === 'DEBIT'">
+                        {{transaction.transactionType === 'CREDIT' ? '+' : '-'}}{{formatCurrency(transaction.amount)}}
+                      </span>
+                      <br>
+                      <span class="badge" [class.bg-success]="transaction.status === 'COMPLETED'"
+                            [class.bg-warning]="transaction.status === 'PENDING'"
+                            [class.bg-danger]="transaction.status === 'FAILED'">
+                        {{transaction.status}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+              </div>
+              <div class="card-body">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-primary" (click)="openSendModal()">
+                    <i class="fas fa-paper-plane me-2"></i> Send Money
+                  </button>
+                  <button class="btn btn-success" (click)="openTopUpModal()">
+                    <i class="fas fa-plus me-2"></i> Top Up Wallet
+                  </button>
+                  <button class="btn btn-info" (click)="openQRModal()" type="button">
+                    <i class="fas fa-qrcode me-2"></i> Generate QR
+                  </button>
+                  <button class="btn btn-warning" (click)="openCryptoModal('buy')">
+                    <i class="fab fa-bitcoin me-2"></i> Buy Crypto
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions Tab -->
+      <div *ngIf="activeTab === 'transactions'" class="tab-pane fade show active">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">All Transactions</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Reference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let transaction of recentTransactions">
+                    <td>{{formatDate(transaction.transactionDate)}}</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <i [class]="getTransactionIcon(transaction.transactionType)" class="me-2"></i>
+                        {{transaction.description}}
+                      </div>
+                    </td>
+                    <td>{{transaction.transactionType}}</td>
+                    <td>
+                      <span [class.text-success]="transaction.transactionType === 'CREDIT'"
+                            [class.text-danger]="transaction.transactionType === 'DEBIT'">
+                        {{transaction.transactionType === 'CREDIT' ? '+' : '-'}}{{formatCurrency(transaction.amount)}}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge" [class.bg-success]="transaction.status === 'COMPLETED'"
+                            [class.bg-warning]="transaction.status === 'PENDING'"
+                            [class.bg-danger]="transaction.status === 'FAILED'">
+                        {{transaction.status}}
+                      </span>
+                    </td>
+                    <td>
+                      <small class="text-muted">{{transaction.referenceNumber}}</small>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Codes Tab -->
+      <div *ngIf="activeTab === 'qr-codes'" class="tab-pane fade show active">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">My QR Codes</h5>
+                <button class="btn btn-primary" (click)="openQRModal()" type="button">
+                  <i class="fas fa-plus me-1"></i> Generate New
+                </button>
+              </div>
+              <div class="card-body">
+                <div *ngIf="myQRCodes.length === 0" class="text-center py-4">
+                  <i class="fas fa-qrcode text-muted fs-1"></i>
+                  <p class="text-muted mt-2">No QR codes generated yet</p>
+                  <button class="btn btn-primary" (click)="openQRModal()" type="button">
+                    Generate Your First QR Code
+                  </button>
+                </div>
+                <div class="row" *ngIf="myQRCodes.length > 0">
+                  <div class="col-md-6 mb-3" *ngFor="let qr of myQRCodes">
+                    <div class="card qr-card">
+                      <div class="card-body text-center">
+                        <div class="qr-placeholder mb-3">
+                          <i class="fas fa-qrcode fs-1 text-primary"></i>
+                        </div>
+                        <h6>{{qr.merchantName || 'Payment Request'}}</h6>
+                        <p class="text-muted mb-1">{{qr.description}}</p>
+                        <h5 class="text-primary" *ngIf="qr.amount">{{formatCurrency(qr.amount)}}</h5>
+                        <p class="text-success" *ngIf="!qr.amount">Flexible Amount</p>
+                        <small class="text-muted">Uses: {{qr.currentUses}}/{{qr.maxUses || '∞'}}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">QR Payment Scanner</h5>
+              </div>
+              <div class="card-body text-center">
+                <i class="fas fa-camera fs-1 text-muted mb-3"></i>
+                <p class="text-muted">Scan QR codes to make payments</p>
+                <button class="btn btn-primary">
+                  <i class="fas fa-camera me-1"></i> Open Scanner
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Crypto Portfolio Tab -->
+      <div *ngIf="activeTab === 'crypto'" class="tab-pane fade show active">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Crypto Holdings</h5>
+                <div>
+                  <button class="btn btn-success btn-sm me-2" (click)="openCryptoModal('buy')">
+                    <i class="fas fa-plus me-1"></i> Buy
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="openCryptoModal('sell')">
+                    <i class="fas fa-minus me-1"></i> Sell
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div *ngIf="cryptoHoldings.length === 0" class="text-center py-4">
+                  <i class="fab fa-bitcoin text-muted fs-1"></i>
+                  <p class="text-muted mt-2">No crypto holdings yet</p>
+                  <button class="btn btn-primary" (click)="openCryptoModal('buy')">
+                    Buy Your First Crypto
+                  </button>
+                </div>
+                <div *ngIf="cryptoHoldings.length > 0">
+                  <div class="crypto-holding mb-3" *ngFor="let holding of cryptoHoldings">
+                    <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                      <div class="d-flex align-items-center">
+                        <i [class]="getCryptoIcon(holding.symbol)" class="fs-2 me-3 text-warning"></i>
+                        <div>
+                          <h6 class="mb-0">{{holding.name}} ({{holding.symbol}})</h6>
+                          <small class="text-muted">{{holding.quantity}} coins</small>
+                        </div>
+                      </div>
+                      <div class="text-end">
+                        <h6 class="mb-0">{{formatCurrency(holding.totalValue)}}</h6>
+                        <small [class.text-success]="holding.profitLoss >= 0" [class.text-danger]="holding.profitLoss < 0">
+                          {{holding.profitLoss >= 0 ? '+' : ''}}{{formatCurrency(holding.profitLoss)}} 
+                          ({{holding.profitLossPercentage.toFixed(2)}}%)
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Available Cryptocurrencies</h5>
+              </div>
+              <div class="card-body">
+                <div *ngFor="let crypto of availableCryptos.slice(0, 5)" class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center">
+                    <i [class]="getCryptoIcon(crypto.symbol)" class="me-2 text-warning"></i>
+                    <small>{{crypto.symbol}}</small>
+                  </div>
+                  <div class="text-end">
+                    <small class="fw-bold">{{formatCurrency(crypto.price)}}</small>
+                    <br>
+                    <small [class.text-success]="crypto.change24h >= 0" [class.text-danger]="crypto.change24h < 0">
+                      {{crypto.change24h >= 0 ? '+' : ''}}{{crypto.change24h.toFixed(2)}}%
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Wallet Prompt -->
+  <div *ngIf="!isLoading && !wallet" class="text-center py-5">
+    <i class="fas fa-wallet text-muted" style="font-size: 4rem;"></i>
+    <h3 class="mt-3">Welcome to Digital Wallet</h3>
+    <p class="text-muted">Create your digital wallet to start making payments, managing crypto, and more!</p>
+    <button class="btn btn-primary btn-lg" (click)="createWallet()">
+      <i class="fas fa-plus me-2"></i> Create Digital Wallet
+    </button>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- Top Up Modal -->
+<div class="modal fade" [class.show]="showTopUpModal" [style.display]="showTopUpModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Top Up Wallet</h5>
+        <button type="button" class="btn-close" (click)="closeTopUpModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Source Account</label>
+            <select class="form-select" [(ngModel)]="topUpForm.sourceAccountId" name="sourceAccount">
+              <option value="">Select Account</option>
+              <option *ngFor="let account of accounts" [value]="account.id">
+                {{account.accountNumber}} - {{formatCurrency(account.balance)}}
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" [(ngModel)]="topUpForm.amount" name="amount" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">PIN</label>
+            <input type="password" class="form-control" [(ngModel)]="topUpForm.pin" name="pin" maxlength="4">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeTopUpModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="topUpWallet()">Top Up</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div class="modal fade" [class.show]="showWithdrawModal" [style.display]="showWithdrawModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Withdraw from Wallet</h5>
+        <button type="button" class="btn-close" (click)="closeWithdrawModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Destination Account</label>
+            <select class="form-select" [(ngModel)]="withdrawForm.destinationAccountId" name="destinationAccount">
+              <option value="">Select Account</option>
+              <option *ngFor="let account of accounts" [value]="account.id">
+                {{account.accountNumber}} - {{account.accountType}}
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" [(ngModel)]="withdrawForm.amount" name="amount" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">PIN</label>
+            <input type="password" class="form-control" [(ngModel)]="withdrawForm.pin" name="pin" maxlength="4">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeWithdrawModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="withdrawFromWallet()">Withdraw</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Send Payment Modal -->
+<div class="modal fade" [class.show]="showSendModal" [style.display]="showSendModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Send Payment</h5>
+        <button type="button" class="btn-close" (click)="closeSendModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Recipient Wallet ID</label>
+            <input type="text" class="form-control" [(ngModel)]="sendForm.recipientWallet" name="recipientWallet">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" [(ngModel)]="sendForm.amount" name="amount" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description (Optional)</label>
+            <input type="text" class="form-control" [(ngModel)]="sendForm.description" name="description">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">PIN</label>
+            <input type="password" class="form-control" [(ngModel)]="sendForm.pin" name="pin" maxlength="4">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeSendModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="sendPayment()">Send Payment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal" [class.show]="showQRModal" *ngIf="showQRModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-qrcode me-2"></i>
+          {{generatedQR ? 'QR Code Generated' : 'Generate QR Code'}}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeQRModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- QR Generation Form (shown when no QR generated) -->
+        <div *ngIf="!generatedQR && !isGeneratingQR">
+          <div class="mb-3">
+            <label class="form-label">Amount (Optional)</label>
+            <input type="number" class="form-control" [(ngModel)]="qrForm.amount" min="0" placeholder="0">
+            <small class="form-text text-muted">Leave empty for flexible amount</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description (Optional)</label>
+            <input type="text" class="form-control" [(ngModel)]="qrForm.description" placeholder="Enter description">
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isGeneratingQR" class="text-center py-4">
+          <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Generating...</span>
+          </div>
+          <p class="text-muted">Generating your QR code...</p>
+        </div>
+
+        <!-- Generated QR Code Display -->
+        <div *ngIf="generatedQR" class="text-center">
+          <div class="qr-display-card p-4 mb-4">
+            <!-- QR Code Visual -->
+            <div class="qr-code-visual mb-3">
+              <div class="qr-placeholder-large" *ngIf="!qrCodeDataURL">
+                <i class="fas fa-qrcode text-primary" style="font-size: 8rem;"></i>
+              </div>
+              <div class="qr-image-container" *ngIf="qrCodeDataURL">
+                <img [src]="qrCodeDataURL" alt="QR Code" class="qr-code-image">
+              </div>
+              <p class="mt-2 text-muted small">QR Code: {{generatedQR.qrCode}}</p>
+              <p class="text-success small">
+                <i class="fas fa-check-circle me-1"></i>
+                Scannable QR Code Ready
+              </p>
+            </div>
+            
+            <!-- QR Details -->
+            <div class="qr-details">
+              <div class="row">
+                <div class="col-6">
+                  <strong>Amount:</strong>
+                  <p class="mb-1">{{generatedQR.amount ? formatCurrency(generatedQR.amount) : 'Flexible'}}</p>
+                </div>
+                <div class="col-6">
+                  <strong>Description:</strong>
+                  <p class="mb-1">{{generatedQR.description}}</p>
+                </div>
+              </div>
+              <div class="row mt-2">
+                <div class="col-6">
+                  <strong>Status:</strong>
+                  <p class="mb-1"><span class="badge bg-success">Active</span></p>
+                </div>
+                <div class="col-6">
+                  <strong>Uses:</strong>
+                  <p class="mb-1">{{generatedQR.currentUses}}/{{generatedQR.maxUses || '∞'}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR Actions -->
+          <div class="qr-actions">
+            <button class="btn btn-outline-primary me-2" (click)="generateNewQR()">
+              <i class="fas fa-plus me-1"></i> Generate Another
+            </button>
+            <button class="btn btn-success me-2" (click)="downloadQRCode()">
+              <i class="fas fa-download me-1"></i> Download QR
+            </button>
+            <button class="btn btn-info me-2" onclick="window.print()">
+              <i class="fas fa-print me-1"></i> Print QR Code
+            </button>
+            <button class="btn btn-warning" onclick="navigator.share && navigator.share({title: 'My QR Code', text: 'Scan this QR code to pay me', url: window.location.href})">
+              <i class="fas fa-share-alt me-1"></i> Share
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeQRModal()">
+          {{generatedQR ? 'Close' : 'Cancel'}}
+        </button>
+        <button type="button" class="btn btn-primary" (click)="generateQRCode()" 
+                *ngIf="!generatedQR && !isGeneratingQR" [disabled]="isGeneratingQR">
+          <i class="fas fa-qrcode me-1"></i> Generate QR Code
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Crypto Modal -->
+<div class="modal fade" [class.show]="showCryptoModal" [style.display]="showCryptoModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{cryptoForm.action === 'buy' ? 'Buy' : 'Sell'}} Cryptocurrency</h5>
+        <button type="button" class="btn-close" (click)="closeCryptoModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Cryptocurrency</label>
+            <select class="form-select" [(ngModel)]="cryptoForm.symbol" name="symbol">
+              <option value="">Select Crypto</option>
+              <option *ngFor="let crypto of availableCryptos" [value]="crypto.symbol">
+                {{crypto.name}} ({{crypto.symbol}}) - {{formatCurrency(crypto.price)}}
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{cryptoForm.action === 'buy' ? 'Amount to Spend' : 'Quantity to Sell'}}</label>
+            <input type="number" class="form-control" [(ngModel)]="cryptoForm.amount" name="amount" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">PIN</label>
+            <input type="password" class="form-control" [(ngModel)]="cryptoForm.pin" name="pin" maxlength="4">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCryptoModal()">Cancel</button>
+        <button type="button" class="btn" [class.btn-success]="cryptoForm.action === 'buy'" [class.btn-danger]="cryptoForm.action === 'sell'" (click)="executeCryptoTrade()">
+          {{cryptoForm.action === 'buy' ? 'Buy' : 'Sell'}} Crypto
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
