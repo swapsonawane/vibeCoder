@@ -145,4 +145,5 @@ export interface WithdrawRequest {
   destinationAccountId: string;
   currency: string;
   pin?: string;
-} 
+}
+

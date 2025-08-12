@@ -228,7 +228,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-    
     this.handleRealTimeNotification(notification);
   }
 
@@ -243,7 +242,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-    
     this.handleRealTimeNotification(notification);
   }
 
@@ -258,7 +256,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-    
     this.handleRealTimeNotification(notification);
   }
 
@@ -273,11 +270,11 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-    
     this.handleRealTimeNotification(notification);
   }
 
   private generateId(): string {
     return 'notif_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
   }
-} 
+}
+

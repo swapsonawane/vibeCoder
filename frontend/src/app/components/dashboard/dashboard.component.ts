@@ -141,6 +141,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/bills']);
   }
 
+  navigateToFinancialAnalysis(): void {
+    this.router.navigate(['/financial-analysis']);
+  }
+
+  navigateToFinancialAdvice(): void {
+    this.router.navigate(['/financial-advice']);
+  }
+
   ngOnDestroy(): void {
     this.userSubscription.unsubscribe();
   }

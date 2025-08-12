@@ -6,7 +6,7 @@ import {
   DigitalWallet, 
   WalletTransaction, 
   QRPayment, 
-  CryptoHolding, 
+  CryptoHolding,
   CryptoTransaction,
   ContactlessPayment,
   WalletSettings,
@@ -47,13 +47,11 @@ export class WalletService {
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
     this.notificationService.showError(errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 
   // ===== WALLET MANAGEMENT =====
-  
   getWallet(): Observable<DigitalWallet> {
     return this.http.get<DigitalWallet>(`${this.apiUrl}/wallet`, {
       headers: this.getAuthHeaders()
@@ -92,7 +90,7 @@ export class WalletService {
     }
     
     return this.http.get<{transactions: WalletTransaction[], totalElements: number}>(
-      `${this.apiUrl}/wallet/transactions?${params}`, 
+      `${this.apiUrl}/wallet/transactions?${params}`,
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(this.handleError.bind(this))
@@ -380,4 +378,5 @@ export class WalletService {
       catchError(this.handleError.bind(this))
     );
   }
-} 
+}
+}

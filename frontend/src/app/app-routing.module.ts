@@ -12,6 +12,8 @@ import { SettingsComponent } from './components/settings/settings.component';
 import { AddBeneficiaryComponent } from './components/beneficiaries/add-beneficiary/add-beneficiary.component';
 import { ViewBeneficiariesComponent } from './components/beneficiaries/view-beneficiaries/view-beneficiaries.component';
 import { MyPayeesComponent } from './components/payees/my-payees.component';
+import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
+import { FinancialAnalysisComponent } from './components/financial-analysis/financial-analysis.component';
 import { WalletComponent } from './components/wallet/wallet.component';
 
 // Guards
@@ -40,6 +42,7 @@ const routes: Routes = [
     component: BillPaymentComponent,
     canActivate: [AuthGuard] 
   },
+
   { 
     path: 'wallet', 
     component: WalletComponent, 
@@ -84,6 +87,16 @@ const routes: Routes = [
     path: 'payees/edit/:id', 
     component: AddBeneficiaryComponent, 
     canActivate: [AuthGuard] 
+  },
+  {
+      path: 'financial-advice',
+      component: FinancialAdviceComponent,
+      canActivate: [AuthGuard]
+  },
+  {
+      path: 'financial-analysis',
+      component: FinancialAnalysisComponent,
+      canActivate: [AuthGuard]
   },
   { path: '**', redirectTo: '/dashboard' }
 ];

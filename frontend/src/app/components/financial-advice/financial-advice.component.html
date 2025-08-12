@@ -1,0 +1,208 @@
+<!-- Financial Advice Component -->
+<div class="financial-advice-container">
+    <div class="form-title">
+        <i class="fas fa-chart-line me-2"></i>
+        Financial Advice & Planning
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="adviceForm" (ngSubmit)="onSubmit()" class="financial-form">
+        <div class="form-group">
+            <label for="salary">
+                <i class="fas fa-dollar-sign me-2"></i>
+                Monthly Salary
+            </label>
+            <input 
+                type="number" 
+                id="salary" 
+                formControlName="salary" 
+                class="form-control" 
+                placeholder="Enter your monthly salary"
+                [class.is-invalid]="getFieldError('salary')"
+                required>
+            <div *ngIf="getFieldError('salary')" class="invalid-feedback">
+                {{ getFieldError('salary') }}
+            </div>
+        </div>
+
+        <h3>
+            <i class="fas fa-list-alt me-2"></i>
+            Monthly Expenses Breakdown
+        </h3>
+        
+        <div class="expense-grid" formGroupName="expenses">
+            <div class="form-group" *ngFor="let category of ['housing', 'groceries', 'transportation', 'utilities', 'entertainment', 'savings', 'other']">
+                <label [for]="category">
+                    <i class="fas fa-tag me-2"></i>
+                    {{ category | titlecase }}
+                </label>
+                <input 
+                    type="number" 
+                    [id]="category" 
+                    [formControlName]="category" 
+                    class="form-control"
+                    [placeholder]="'Enter ' + category + ' expenses'"
+                    [class.is-invalid]="getFieldError('expenses.' + category)">
+                <div *ngIf="getFieldError('expenses.' + category)" class="invalid-feedback">
+                    {{ getFieldError('expenses.' + category) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense Summary -->
+        <div class="expense-summary">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Expenses:</span>
+                        <span class="summary-value text-danger">${{ getTotalExpenses() | number:'1.0-0' }}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="summary-item">
+                        <span class="summary-label">Remaining:</span>
+                        <span class="summary-value" [class.text-success]="getRemainingAmount() >= 0" [class.text-danger]="getRemainingAmount() < 0">
+                            ${{ getRemainingAmount() | number:'1.0-0' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="summary-item">
+                        <span class="summary-label">Savings Rate:</span>
+                        <span class="summary-value text-info">
+                            {{ (getTotalExpenses() > 0 ? (getSavingsValue() || 0) / getTotalExpenses() * 100 : 0) | number:'1.0-1' }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="futureGoal">
+                <i class="fas fa-bullseye me-2"></i>
+                Future Financial Goal
+            </label>
+            <input 
+                type="text" 
+                id="futureGoal" 
+                formControlName="futureGoal" 
+                class="form-control"
+                placeholder="e.g., Buy a house, Save for retirement, Start a business"
+                [class.is-invalid]="getFieldError('futureGoal')">
+            <div *ngIf="getFieldError('futureGoal')" class="invalid-feedback">
+                {{ getFieldError('futureGoal') }}
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button 
+                type="submit" 
+                class="btn btn-primary"
+                [disabled]="!isFormValid() || isLoading">
+                <i class="fas fa-magic me-2"></i>
+                <span *ngIf="!isLoading">Get Personalized Advice</span>
+                <span *ngIf="isLoading">Generating Advice...</span>
+            </button>
+            
+            <button 
+                type="button" 
+                class="btn btn-outline-secondary"
+                (click)="resetForm()">
+                <i class="fas fa-refresh me-2"></i>
+                Reset Form
+            </button>
+        </div>
+    </form>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Analyzing your financial data and generating personalized advice...</p>
+    </div>
+
+    <!-- Results Section -->
+    <div *ngIf="adviceResponse" class="advice-results">
+        <!-- Advice Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-lightbulb me-2"></i>
+                Personalized Financial Advice
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li *ngFor="let item of adviceResponse.advice; let i = index">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ item }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Insights Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie me-2"></i>
+                Financial Insights & Analysis
+            </div>
+            <div class="card-body">
+                <div *ngFor="let insight of adviceResponse.insights" class="insight-item">
+                    <h4>
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ insight.title }}
+                    </h4>
+                    <p>{{ insight.detail }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Items Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-tasks me-2"></i>
+                Recommended Actions
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Next Steps:</strong> Consider implementing the advice above and track your progress over time.
+                </div>
+                                 <div class="d-grid gap-2">
+                     <button class="btn btn-outline-primary" (click)="downloadFinancialReport()" [disabled]="!adviceResponse">
+                         <i class="fas fa-download me-2"></i>
+                         Download Report (TXT)
+                     </button>
+                     <button class="btn btn-outline-secondary" (click)="downloadReportAsHTML()" [disabled]="!adviceResponse">
+                         <i class="fas fa-file-code me-2"></i>
+                         Download Report (HTML)
+                     </button>
+                     <button class="btn btn-outline-success" (click)="scheduleFollowUpReview()" [disabled]="!adviceResponse">
+                         <i class="fas fa-calendar-plus me-2"></i>
+                         Schedule Follow-up Review
+                     </button>
+                 </div>
+                 
+                 <!-- Follow-up Management -->
+                 <div class="mt-3">
+                     <h6><i class="fas fa-calendar-check me-2"></i>Follow-up Management</h6>
+                     <div class="d-grid gap-2 d-md-flex">
+                         <button class="btn btn-outline-info btn-sm" (click)="viewScheduledFollowUps()">
+                             <i class="fas fa-eye me-2"></i>
+                             View Scheduled Reviews
+                         </button>
+                         <button class="btn btn-outline-warning btn-sm" (click)="clearFollowUpReminders()">
+                             <i class="fas fa-trash me-2"></i>
+                             Clear All Reminders
+                         </button>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>

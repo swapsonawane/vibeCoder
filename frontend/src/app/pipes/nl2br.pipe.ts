@@ -8,4 +8,4 @@ export class Nl2brPipe implements PipeTransform {
     if (!value) return value;
     return value.replace(/\n/g, '<br>');
   }
-} 
+}

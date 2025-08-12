@@ -38,7 +38,12 @@ import { NotificationService } from './services/notification.service';
 import { BeneficiaryService } from './services/beneficiary.service';
 import { AiChatService } from './services/ai-chat.service';
 import { PdfStatementService } from './services/pdf-statement.service';
+import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
+import { FinancialAdviceService } from './services/financial-advice.service';
+import { FinancialAnalysisComponent } from './components/financial-analysis/financial-analysis.component';
+import { FinancialAnalysisService } from './services/financial-analysis.service';
 import { WalletService } from './services/wallet.service';
+
 
 @NgModule({
   declarations: [
@@ -54,6 +59,9 @@ import { WalletService } from './services/wallet.service';
     ViewBeneficiariesComponent,
     MyPayeesComponent,
     ChatbotComponent,
+    Nl2brPipe,
+    FinancialAdviceComponent,
+    FinancialAnalysisComponent,
     WalletComponent,
     Nl2brPipe
   ],
@@ -76,6 +84,8 @@ import { WalletService } from './services/wallet.service';
     BeneficiaryService,
     AiChatService,
     PdfStatementService,
+    FinancialAdviceService,
+    FinancialAnalysisService,
     WalletService
   ],
   bootstrap: [AppComponent]
