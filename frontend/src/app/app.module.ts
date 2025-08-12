@@ -24,6 +24,8 @@ import { AddBeneficiaryComponent } from './components/beneficiaries/add-benefici
 import { ViewBeneficiariesComponent } from './components/beneficiaries/view-beneficiaries/view-beneficiaries.component';
 import { MyPayeesComponent } from './components/payees/my-payees.component';
 import { ChatbotComponent } from './components/chatbot/chatbot.component';
+// Pipes
+import { Nl2brPipe } from './pipes/nl2br.pipe';
 
 // Services
 import { AuthService } from './services/auth.service';
@@ -53,6 +55,7 @@ import { FinancialAnalysisService } from './services/financial-analysis.service'
     ViewBeneficiariesComponent,
     MyPayeesComponent,
     ChatbotComponent,
+    Nl2brPipe,
     FinancialAdviceComponent,
     FinancialAnalysisComponent
   ],

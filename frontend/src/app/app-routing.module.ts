@@ -41,6 +41,7 @@ const routes: Routes = [
     component: BillPaymentComponent,
     canActivate: [AuthGuard] 
   },
+
   { 
     path: 'profile', 
     component: ProfileComponent, 
