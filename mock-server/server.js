@@ -837,7 +837,6 @@ app.get('/api/wallet/transactions', authenticateToken, (req, res) => {
   const size = parseInt(req.query.size) || 10;
   const start = page * size;
   const end = start + size;
-
   res.json({
     transactions: walletTransactions.slice(start, end),
     totalElements: walletTransactions.length
@@ -848,7 +847,6 @@ app.get('/api/wallet/transactions', authenticateToken, (req, res) => {
 app.post('/api/wallet/topup', authenticateToken, (req, res) => {
   const { amount, sourceAccountId } = req.body;
   const wallet = wallets.find(w => w.userId === req.user.id);
-
   if (!wallet) {
     return res.status(404).json({ message: 'Wallet not found' });
   }
@@ -867,7 +865,6 @@ app.post('/api/wallet/topup', authenticateToken, (req, res) => {
     transactionDate: new Date(),
     referenceNumber: `WTF${Date.now()}`
   };
-
   walletTransactions.unshift(transaction);
   res.json(transaction);
 });
@@ -876,7 +873,6 @@ app.post('/api/wallet/topup', authenticateToken, (req, res) => {
 app.post('/api/wallet/send', authenticateToken, (req, res) => {
   const { recipientWallet, amount, description } = req.body;
   const wallet = wallets.find(w => w.userId === req.user.id);
-
   if (!wallet) {
     return res.status(404).json({ message: 'Wallet not found' });
   }
@@ -900,7 +896,6 @@ app.post('/api/wallet/send', authenticateToken, (req, res) => {
     transactionDate: new Date(),
     referenceNumber: `WTF${Date.now()}`
   };
-
   walletTransactions.unshift(transaction);
   res.json(transaction);
 });
@@ -919,7 +914,6 @@ app.get('/api/wallet/crypto/available', authenticateToken, (req, res) => {
 app.post('/api/wallet/crypto/buy', authenticateToken, (req, res) => {
   const { symbol, amount } = req.body;
   const wallet = wallets.find(w => w.userId === req.user.id);
-
   if (!wallet) {
     return res.status(404).json({ message: 'Wallet not found' });
   }
@@ -981,7 +975,6 @@ app.post('/api/wallet/crypto/buy', authenticateToken, (req, res) => {
 // Generate QR code
 app.post('/api/wallet/qr/generate', authenticateToken, (req, res) => {
   const { amount, description } = req.body;
-
   const qrPayment = {
     id: `qr_${Date.now()}`,
     qrCode: `QR${Math.random().toString(36).substr(2, 10)}`,

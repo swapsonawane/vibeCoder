@@ -14,6 +14,7 @@ import { ViewBeneficiariesComponent } from './components/beneficiaries/view-bene
 import { MyPayeesComponent } from './components/payees/my-payees.component';
 import { FinancialAdviceComponent } from './components/financial-advice/financial-advice.component';
 import { FinancialAnalysisComponent } from './components/financial-analysis/financial-analysis.component';
+import { WalletComponent } from './components/wallet/wallet.component';
 
 // Guards
 import { AuthGuard } from './guards/auth.guard';
@@ -42,6 +43,11 @@ const routes: Routes = [
     canActivate: [AuthGuard] 
   },
 
+  { 
+    path: 'wallet', 
+    component: WalletComponent, 
+    canActivate: [AuthGuard] 
+  },
   { 
     path: 'profile', 
     component: ProfileComponent, 

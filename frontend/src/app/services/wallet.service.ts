@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import {
-  DigitalWallet,
-  WalletTransaction,
-  QRPayment,
+import { 
+  DigitalWallet, 
+  WalletTransaction, 
+  QRPayment, 
   CryptoHolding,
   CryptoTransaction,
   ContactlessPayment,
@@ -47,13 +47,11 @@ export class WalletService {
     } else if (error.message) {
       errorMessage = error.message;
     }
-
     this.notificationService.showError(errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 
   // ===== WALLET MANAGEMENT =====
-
   getWallet(): Observable<DigitalWallet> {
     return this.http.get<DigitalWallet>(`${this.apiUrl}/wallet`, {
       headers: this.getAuthHeaders()
@@ -90,7 +88,7 @@ export class WalletService {
     if (type) {
       params += `&type=${type}`;
     }
-
+    
     return this.http.get<{transactions: WalletTransaction[], totalElements: number}>(
       `${this.apiUrl}/wallet/transactions?${params}`,
       { headers: this.getAuthHeaders() }
@@ -266,7 +264,7 @@ export class WalletService {
 
   getAvailableCryptos(): Observable<{symbol: string, name: string, price: number, change24h: number}[]> {
     return this.http.get<{symbol: string, name: string, price: number, change24h: number}[]>(
-      `${this.apiUrl}/wallet/crypto/available`,
+      `${this.apiUrl}/wallet/crypto/available`, 
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(this.handleError.bind(this))
@@ -326,7 +324,7 @@ export class WalletService {
 
   validateWalletNumber(walletNumber: string): Observable<{valid: boolean, ownerName?: string}> {
     return this.http.get<{valid: boolean, ownerName?: string}>(
-      `${this.apiUrl}/wallet/validate/${walletNumber}`,
+      `${this.apiUrl}/wallet/validate/${walletNumber}`, 
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(this.handleError.bind(this))
@@ -335,7 +333,7 @@ export class WalletService {
 
   searchWalletByPhone(phoneNumber: string): Observable<{walletNumber: string, ownerName: string}[]> {
     return this.http.get<{walletNumber: string, ownerName: string}[]>(
-      `${this.apiUrl}/wallet/search/phone/${phoneNumber}`,
+      `${this.apiUrl}/wallet/search/phone/${phoneNumber}`, 
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(this.handleError.bind(this))
@@ -344,7 +342,7 @@ export class WalletService {
 
   getTransactionLimits(): Observable<{daily: number, monthly: number, perTransaction: number, used: {daily: number, monthly: number}}> {
     return this.http.get<{daily: number, monthly: number, perTransaction: number, used: {daily: number, monthly: number}}>(
-      `${this.apiUrl}/wallet/limits`,
+      `${this.apiUrl}/wallet/limits`, 
       { headers: this.getAuthHeaders() }
     ).pipe(
       catchError(this.handleError.bind(this))
@@ -380,4 +378,5 @@ export class WalletService {
       catchError(this.handleError.bind(this))
     );
   }
+}
 }

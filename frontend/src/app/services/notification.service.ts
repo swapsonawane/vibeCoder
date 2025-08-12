@@ -188,8 +188,6 @@ export class NotificationService {
     if ('Notification' in window && Notification.permission === 'granted') {
       const browserNotification = new Notification(notification.title, {
         body: notification.message,
-        icon: '/assets/icons/notification-icon.png',
-        badge: '/assets/icons/badge-icon.png',
         tag: notification.id
       });
 
@@ -230,7 +228,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-
     this.handleRealTimeNotification(notification);
   }
 
@@ -245,7 +242,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-
     this.handleRealTimeNotification(notification);
   }
 
@@ -260,7 +256,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-
     this.handleRealTimeNotification(notification);
   }
 
@@ -275,7 +270,6 @@ export class NotificationService {
       createdAt: new Date(),
       userId: this.authService.getCurrentUser()?.id || 'anonymous'
     };
-
     this.handleRealTimeNotification(notification);
   }
 
@@ -283,3 +277,4 @@ export class NotificationService {
     return 'notif_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
   }
 }
+
